@@ -12,3 +12,5 @@ pdf2image
 # ocr
 opencv-python
 easyocr
+python-doctr
+transformers
