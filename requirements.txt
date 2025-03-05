@@ -8,3 +8,7 @@ beautifulsoup4
 lxml
 pytesseract
 pdf2image
+
+# ocr
+opencv-python
+easyocr
