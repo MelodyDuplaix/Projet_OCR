@@ -1,2 +1,8 @@
 # Bibliothèques de base
 pandas==2.1.3
+dotenv
+
+# récupération des fichiers
+requests
+beautifulsoup4
+lxml
