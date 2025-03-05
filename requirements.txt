@@ -6,3 +6,5 @@ dotenv
 requests
 beautifulsoup4
 lxml
+pytesseract
+pdf2image
