@@ -2,7 +2,7 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # type: ignore
 import os
 
 def request_get(url):
@@ -85,9 +85,10 @@ if __name__ == "__main__":
     load_dotenv()
     blob_keys = os.getenv("AZURE_BLOB_KEYS")
     count = 0
-    for file in get_all_files(blob_keys):
+    all_files = get_all_files(blob_keys)
+    for file in all_files:
         year = file.split("_")[1]
-        folder_path = f"../data/files/{year}"
+        folder_path = f"data/files/{year}"
         os.makedirs(folder_path, exist_ok=True)
         url = f"https://projetocrstorageacc.blob.core.windows.net/invoices-{year}/{file}?{blob_keys}"
         download_file_requests_os(url, f"{folder_path}/{file}")
