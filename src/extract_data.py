@@ -87,7 +87,7 @@ def extraire_donnees(file):
         extracted_texts = process_image(chemin, predefined_regions)
         genre, birthdate, datetime_qr, fac = decode_qrcode(chemin)
 
-        adresse = extracted_texts["Adresse"].replace("\n", " ")
+        adresse = extracted_texts["Adresse"].replace("\n", " ").replace("Address ", "")
         nom_client = extracted_texts["Nom"]
         mail_client = extracted_texts["Mail"]
         date_facturation = parse(extracted_texts["Date"], languages=["fr", "en"])
