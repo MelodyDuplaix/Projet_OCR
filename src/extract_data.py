@@ -28,8 +28,9 @@ def decode_qrcode(img_path):
         datetime = data[1].split("DATE:")[1]
         birthdate = data[2].split(", birth ")[1]
         genre = data[2].split(",")[0].split(":")[1]
-        return genre, birthdate, datetime
-    return None, None, None
+        fac = data[0].replace("INVOICE:FAC/","").replace("/","-")
+        return genre, birthdate, datetime, fac
+    return None, None, None, None
 
 def process_image(input_img_path, regions, scale_factor=2):
     img = cv2.imread(input_img_path)
@@ -84,7 +85,7 @@ def extraire_donnees(file):
 
     try:
         extracted_texts = process_image(chemin, predefined_regions)
-        genre, birthdate, datetime_qr = decode_qrcode(chemin)
+        genre, birthdate, datetime_qr, fac = decode_qrcode(chemin)
 
         adresse = extracted_texts["Adresse"].replace("\n", " ")
         nom_client = extracted_texts["Nom"]
@@ -115,7 +116,7 @@ def extraire_donnees(file):
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
-        id_facture = file
+        id_facture = fac
 
         df_client = pd.DataFrame([{
             "id_client": id_client,
@@ -176,7 +177,7 @@ def extraire_donnees(file):
 if __name__ == "__main__":
     start_time = time.time()
 
-    for i, file in enumerate(all_files[1300:], start=1):
+    for i, file in enumerate(all_files, start=1):
         data = extraire_donnees(file)
 
         if data:
