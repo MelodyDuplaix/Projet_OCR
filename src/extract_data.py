@@ -14,6 +14,23 @@ load_dotenv()
 blob_keys = os.getenv("AZURE_BLOB_KEYS")
 all_files = get_all_files(blob_keys)
 
+def decode_qrcode(img_path):
+    img = cv2.imread(img_path)
+    (x, y, w, h) = (540, 8, 150, 150)
+    top_left = (x, y)
+    bottom_right = (x + w, y + h)
+    cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
+    roi = img[y:y+h, x:x+w]
+    detector = cv2.QRCodeDetector()
+    data, bbox, straight_qrcode = detector.detectAndDecode(roi)
+    if data:
+        data = data.split("\n")
+        datetime = data[1].split("DATE:")[1]
+        birthdate = data[2].split(", birth ")[1]
+        genre = data[2].split(",")[0].split(":")[1]
+        return genre, birthdate, datetime
+    return None, None, None
+
 def process_image(input_img_path, regions, scale_factor=2):
     img = cv2.imread(input_img_path)
     
@@ -58,23 +75,25 @@ predefined_regions = {
 
 
 def nettoyer_total(total):
-    """Vérifie si le total est bien détecté (ne doit pas contenir 'x')"""
     if "x" in total:
         return None
     return total.replace(" Euro", "")
 
 def extraire_donnees(file):
-    """Extrait et nettoie les données d'un fichier"""
     chemin = f"data/files/{file.split('_')[1]}/{file}"
-    output = "data/test.png"
 
     try:
         extracted_texts = process_image(chemin, predefined_regions)
-        
+        genre, birthdate, datetime_qr = decode_qrcode(chemin)
+
         adresse = extracted_texts["Adresse"].replace("\n", " ")
         nom_client = extracted_texts["Nom"]
         mail_client = extracted_texts["Mail"]
         date_facturation = parse(extracted_texts["Date"], languages=["fr", "en"])
+
+        # Use QR code datetime if available, otherwise use extracted date
+        if datetime_qr:
+            date_facturation = parse(datetime_qr, languages=["fr", "en"])
 
         products = [product for product in extracted_texts["Products"].split('\n') if product != "TOTAL"]
         quantities = [quantity.split("x")[0].strip() for quantity in extracted_texts["Quantities_and_prices"].split('\n')[:-1]]
@@ -103,7 +122,8 @@ def extraire_donnees(file):
             "Nom": nom_client,
             "mail": mail_client.replace("| ", ""),
             "Adresse": adresse,
-            "birthday": None
+            "Birthdate": birthdate,
+            "Genre": genre
         }])
 
         df_facture = pd.DataFrame({
