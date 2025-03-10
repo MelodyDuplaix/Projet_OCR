@@ -15,3 +15,7 @@ easyocr
 python-doctr
 transformers
 dateparser
+
+# database
+sqlalchemy
+psycopg2
