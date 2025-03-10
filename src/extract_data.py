@@ -16,7 +16,7 @@ all_files = get_all_files(blob_keys)
 
 def decode_qrcode(img_path):
     img = cv2.imread(img_path)
-    (x, y, w, h) = (540, 8, 150, 150)
+    (x, y, w, h) = (530, 5, 160, 160)
     top_left = (x, y)
     bottom_right = (x + w, y + h)
     cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
