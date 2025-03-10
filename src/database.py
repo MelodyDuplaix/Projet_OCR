@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
+from sqlalchemy import DateTime, create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import pandas as pd
 from dotenv import load_dotenv
@@ -27,7 +27,8 @@ client = Table(
     Column("Nom", String(50)),
     Column("mail", String(50)),
     Column("Adresse", String(200)),
-    Column("birthday", Date),
+    Column("Birthdate", Date),
+    Column("Genre", String(50))
 )
 
 facture = Table(
@@ -35,7 +36,7 @@ facture = Table(
     metadata,
     Column("id_facture", String(50), primary_key=True),
     Column("texte", String(1500)),
-    Column("date_facturation", Date),
+    Column("date_facturation", DateTime),
     Column("Total", Numeric)
 )
 
