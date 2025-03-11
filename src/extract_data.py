@@ -82,6 +82,7 @@ def nettoyer_total(total):
 
 def extraire_donnees(file):
     chemin = f"data/files/{file.split('_')[1]}/{file}"
+    erreurs = []
 
     try:
         extracted_texts = process_image(chemin, predefined_regions)
@@ -109,10 +110,10 @@ def extraire_donnees(file):
         if not quantities: erreurs.append("Quantités non détectées")
         if not prices: erreurs.append("Prix non détectés")
         if total is None: erreurs.append("Total mal détecté")
-
+        
         if erreurs:
-            print(f"Erreur dans le fichier {file} : {', '.join(erreurs)}")
-            return None
+            errors_list = [{"fichier": file, "erreur": ', '.join(erreurs)}]
+            return errors_list
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
@@ -171,20 +172,30 @@ def extraire_donnees(file):
         return df_client, df_facture, df_produit, df_achat
 
     except Exception as e:
-        print(f"Échec pour le fichier {file} : {str(e)}")
-        return None
-    
+        return [{"fichier": file, "erreur": str(e)}]
+
 if __name__ == "__main__":
     start_time = time.time()
+    all_errors = []
+    print(len(all_files))
 
     for i, file in enumerate(all_files, start=1):
         data = extraire_donnees(file)
-
         if data:
-            df_client, df_facture, df_produit, df_achat = data
+            if isinstance(data, list):
+                all_errors.extend(data)
+            else:
+                df_client, df_facture, df_produit, df_achat = data
 
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
             print(f"{i} fichiers traités en {elapsed_time:.2f} secondes")
 
     print("\nTraitement terminé")
+    if all_errors:
+        df_errors = pd.DataFrame(all_errors)
+        df_errors.to_csv("data/log_errors.csv", index=False)
+        print(f"Nombre d'erreurs : {len(df_errors)}")
+        for _, row in df_errors.iterrows():
+            print(f"Echec du fichier : {row["fichier"]}")
+            print(f"Erreur : {row["erreur"]}")
