@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 from dotenv import load_dotenv # type: ignore
 import os
@@ -10,6 +11,7 @@ import cv2
 import pytesseract
 import time
 from sqlalchemy import create_engine
+import re
 
 
 
@@ -85,15 +87,11 @@ def process_image(input_img_path, regions, scale_factor=2):
 
 # Définition des blocs
 predefined_regions = {
-    "Adresse": (10, 116, 500, 60),
-    "Nom": (70, 70, 450, 30),
-    "Mail": (50, 100, 460, 20),
-    "Date": (105, 45, 420, 30),
-    "Products": (20, 180, 420, 350),
-    "Quantities_and_prices": (510, 180, 280, 350),
-    "Qrcode": (540, 8, 150, 150)
+    "Products": (20, 180, 420, 900),
+    "Quantities_and_prices": (510, 180, 280, 900),
+    "Qrcode": (540, 8, 150, 150),
+    "bloc": (10, 10, 520, 180)
 }
-
 
 def nettoyer_total(total):
     """
@@ -122,23 +120,33 @@ def extraire_donnees(file):
     erreurs = []
 
     try:
+        erreurs = []
         extracted_texts = process_image(file, predefined_regions)
         genre, birthdate, datetime_qr, fac = decode_qrcode(file)
+        
+        bloc = extracted_texts["bloc"]
+        file_date = re.search(r'FAC/(\d{4}/\d{4})', bloc) if bloc else None
+        file_date = file_date.group(1).replace("/","-") if file_date else None
+        date_facturation = re.search(r'Issue date (\d{4}-\d{2}-\d{2})', bloc) if bloc else None
+        date_facturation = parse(date_facturation.group(1), languages=["fr", "en"]) if date_facturation else None
+        nom_client = re.search(r'Bill to (.+)', bloc) if bloc else None
+        nom_client = nom_client.group(1).strip() if nom_client else None
+        mail_client = re.search(r'Email (.+@.+\..+)', bloc) if bloc else None
+        mail_client = mail_client.group(1) if mail_client else None
+        adresse = bloc.split("Address ")[1].replace("\n", " ").strip() if bloc else None
 
-        adresse = extracted_texts["Adresse"].replace("\n", " ").replace("Address ", "")
-        nom_client = extracted_texts["Nom"]
-        mail_client = extracted_texts["Mail"]
-        date_facturation = parse(extracted_texts["Date"], languages=["fr", "en"])
-
-        if datetime_qr:
-            date_facturation = parse(datetime_qr, languages=["fr", "en"])
+        if datetime_qr and date_facturation:
+            if parse(datetime_qr, languages=["fr", "en"]).date() == date_facturation.date():
+                date_facturation = parse(datetime_qr, languages=["fr", "en"])
+            else:
+                erreurs.append("Dates non correspondantes")
 
         products = [product for product in extracted_texts["Products"].split('\n') if product != "TOTAL"]
         quantities = [quantity.split("x")[0].strip() for quantity in extracted_texts["Quantities_and_prices"].split('\n')[:-1]]
         prices = [price.split("x")[1].strip().replace(" Euro", "") for price in extracted_texts["Quantities_and_prices"].replace("\n\n", "\n").split('\n')[:-1]]
-        total = extracted_texts["Quantities_and_prices"].split('\n')[-1].replace(" Euro", "")
+        total = extracted_texts["Quantities_and_prices"].split('\n')[-1].replace(" Euro", "").replace("Furo", "")
 
-        erreurs = []
+        if not file_date == fac and fac: erreurs.append("Identifiants de fichiers non correspondants")
         if not nom_client: erreurs.append("Nom non détecté")
         if not mail_client: erreurs.append("Mail non détecté")
         if not date_facturation: erreurs.append("Date non détectée")
@@ -146,6 +154,15 @@ def extraire_donnees(file):
         if not quantities: erreurs.append("Quantités non détectées")
         if not prices: erreurs.append("Prix non détectés")
         if total is None: erreurs.append("Total mal détecté")
+
+        try:
+            total_calcule = sum(float(price) * int(quantity) for price, quantity in zip(prices, quantities))
+            total_calcule = round(total_calcule, 2)
+            total_from_invoice = round(float(total.replace(',', '.')), 2)
+            if total_from_invoice != total_calcule:
+                erreurs.append("Total non correct")
+        except Exception as e:
+            erreurs.append(f"Erreur lors du calcul du total : {str(e)}")
         
         if erreurs:
             return {"status": "error", "fichier": file, "data": None,"erreur": ', '.join(erreurs)}
@@ -169,6 +186,7 @@ def extraire_donnees(file):
             "date_facturation": [date_facturation],
             "Total": total
         })
+        df_facture["Total"] = df_facture["Total"].astype(float, errors='ignore')
 
         products_filtre = [product for product in products if product.strip()]
         unique_products = {}
