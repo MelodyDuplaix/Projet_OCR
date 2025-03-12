@@ -169,7 +169,7 @@ def extraire_donnees(file):
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
-        id_facture = fac
+        id_facture = fac if fac else file_date
 
         df_client = pd.DataFrame([{
             "id_client": id_client,
