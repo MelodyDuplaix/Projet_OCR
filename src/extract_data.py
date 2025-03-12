@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv # type: ignore
@@ -43,7 +44,6 @@ def decode_qrcode(img_path):
         new_size = int(roi.shape[1] * scale_factor), int(roi.shape[0] * scale_factor)
         img_large = cv2.resize(img_large, new_size, interpolation=cv2.INTER_LINEAR_EXACT)
         data, bbox, straight_qrcode = detector.detectAndDecode(img_large)
-    print(data)
     if data:
         data = data.split("\n")
         datetime = data[1].split("DATE:")[1]
@@ -146,7 +146,7 @@ def extraire_donnees(file):
         adresse = bloc.split("Address ")[1].replace("\n", " ").strip() if bloc else None
 
         if datetime_qr and date_facturation:
-            if parse(datetime_qr, languages=["fr", "en"]).date() == date_facturation.date():
+            if parse(datetime_qr, languages=["fr", "en"]).date() == date_facturation.date(): # type: ignore
                 date_facturation = parse(datetime_qr, languages=["fr", "en"])
             else:
                 erreurs.append("Dates non correspondantes")
@@ -181,25 +181,25 @@ def extraire_donnees(file):
             return {"status": "error", "fichier": file, "data": None,"erreur": ', '.join(erreurs)}
 
         # Génération d'identifiants uniques
-        id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
+        id_client = f"CLT_{nom_client.replace(" ", "_")}" # type: ignore
         id_facture = fac if fac else file_date
 
         df_client = pd.DataFrame([{
             "id_client": id_client,
-            "Nom": nom_client,
-            "mail": mail_client.replace("| ", ""),
-            "Adresse": adresse,
-            "Birthdate": birthdate,
-            "Genre": genre
+            "nom": nom_client,
+            "mail": mail_client.replace("| ", ""), # type: ignore
+            "adresse": adresse,
+            "birthdate": birthdate,
+            "genre": genre
         }])
 
         df_facture = pd.DataFrame({
             "id_facture": [id_facture],
             "texte": " ".join("".join(valeurs) for valeurs in extracted_texts.values()),
             "date_facturation": [date_facturation],
-            "Total": total
+            "total": total
         })
-        df_facture["Total"] = df_facture["Total"].astype(float, errors='ignore')
+        df_facture["total"] = df_facture["total"].astype(float, errors='ignore')
 
         products_filtre = [product for product in products if product.strip()]
         unique_products = {}
@@ -209,9 +209,9 @@ def extraire_donnees(file):
                 unique_products[product_cleaned] = price
 
         df_produit = pd.DataFrame({
-            "id_produit": [f"PROD_{hash(p) % 10**6}" for p in unique_products.keys()],
-            "Nom": list(unique_products.keys()),
-            "Prix": list(unique_products.values())
+            "id_produit": [f"PROD_{"_".join(n.split(" ")[:3])}" for n in unique_products.keys()],
+            "nom": list(unique_products.keys()),
+            "prix": list(unique_products.values())
         })
 
         # Agrégation des quantités si plusieurs fois le même produit dans une facture
@@ -224,7 +224,7 @@ def extraire_donnees(file):
                 product_quantities[product_cleaned] = int(quantity)
 
         df_achat = pd.DataFrame({
-            "id_produit": [f"PROD_{hash(p) % 10**6}" for p in product_quantities.keys()],
+            "id_produit": [f"PROD_{"_".join(n.split(" ")[:3])}" for n in unique_products.keys()],
             "id_client": [id_client] * len(product_quantities),
             "id_facture": [id_facture] * len(product_quantities),
             "quantité": list(product_quantities.values())
@@ -234,7 +234,6 @@ def extraire_donnees(file):
         return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
     except Exception as e:
-        print(str(e))
         return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
         
 
@@ -249,17 +248,23 @@ if __name__ == "__main__":
     engine = create_engine(database_url)
     start_time = time.time()
     all_errors = []
-    print(len(all_files))
+    
+    print("Début du traitement")
 
-    for i, file in enumerate(all_files, start=1):
-        chemin = f"data/files/{file.split('_')[1]}/{file}"
+    for i, filename in enumerate(all_files, start=1):
+        chemin = f"data/files/{filename.split('_')[1]}/{filename}"
         extract = extraire_donnees(chemin)
         status = extract["status"]
         file = extract["fichier"]
         erreur = extract["erreur"]
         data = extract["data"]
         if erreur:
-            all_errors.append(extract)
+            print(f"Echec du fichier : {file}, erreur : {erreur}")
+            all_errors.append({
+                "time": datetime.datetime.now(),
+                "fichier": filename,
+                "erreur": erreur
+            })
         if data:
             df_client, df_facture, df_produit, df_achat = data
             add_data( "client", df_client)
@@ -274,8 +279,5 @@ if __name__ == "__main__":
     print("\nTraitement terminé")
     if all_errors:
         df_errors = pd.DataFrame(all_errors)
-        df_errors.to_csv("data/log_errors.csv", index=False)
+        add_data("log", df_errors)
         print(f"Nombre d'erreurs : {len(df_errors)}")
-        for _, row in df_errors.iterrows():
-            print(f"Echec du fichier : {row['fichier']}")
-            print(f"Erreur : {row['erreur']}")
