@@ -118,7 +118,7 @@ def extraire_donnees(file):
         file (str): the path of the file to extract the data from
 
     Returns:
-        tupple: the data extracted from the image, in dataframes: client, facture, produit, achat 
+        dict: the data extracted from the image, in dataframes: client, facture, produit, achat , the status, the errors and the file name
     """
     erreurs = []
 
@@ -149,8 +149,7 @@ def extraire_donnees(file):
         if total is None: erreurs.append("Total mal détecté")
         
         if erreurs:
-            errors_list = [{"fichier": file, "erreur": ', '.join(erreurs)}]
-            return errors_list
+            return {"status": "error", "fichier": file, "data": None,"erreur": ', '.join(erreurs)}
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
@@ -206,10 +205,12 @@ def extraire_donnees(file):
         add_data(engine, "produit", df_produit)
         add_data(engine, "achat", df_achat)
 
-        return df_client, df_facture, df_produit, df_achat
+        retour =  df_client, df_facture, df_produit, df_achat
+        return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
     except Exception as e:
-        return [{"fichier": file, "erreur": str(e)}]
+        return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
+        
 
 if __name__ == "__main__":
     start_time = time.time()
@@ -218,12 +219,15 @@ if __name__ == "__main__":
 
     for i, file in enumerate(all_files, start=1):
         chemin = f"data/files/{file.split('_')[1]}/{file}"
-        data = extraire_donnees(chemin)
+        extract = extraire_donnees(chemin)
+        status = extract["status"]
+        file = extract["fichier"]
+        erreur = extract["erreur"]
+        data = extract["data"]
+        if erreur:
+            all_errors.append(extract)
         if data:
-            if isinstance(data, list):
-                all_errors.extend(data)
-            else:
-                df_client, df_facture, df_produit, df_achat = data
+            df_client, df_facture, df_produit, df_achat = data
 
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
