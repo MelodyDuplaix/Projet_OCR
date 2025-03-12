@@ -15,6 +15,15 @@ blob_keys = os.getenv("AZURE_BLOB_KEYS")
 all_files = get_all_files(blob_keys)
 
 def decode_qrcode(img_path):
+    """
+    Extract the text from the qrcode in the given image
+
+    Args:
+        img_path (str): the path of the image
+
+    Returns:
+        tupple: the genre, birthdate, datetime and name fac of the client in the qrcode
+    """
     img = cv2.imread(img_path)
     (x, y, w, h) = (530, 5, 160, 160)
     top_left = (x, y)
@@ -33,6 +42,17 @@ def decode_qrcode(img_path):
     return None, None, None, None
 
 def process_image(input_img_path, regions, scale_factor=2):
+    """
+    Extract the data from the differents region of the given image
+
+    Args:
+        input_img_path (str): the path of the image
+        regions (dict): the regions of the image
+        scale_factor (int, optional): the scale factor of the image. Defaults to 2.
+
+    Returns:
+        dict: the extracted data from the image
+    """
     img = cv2.imread(input_img_path)
     
     # Agrandir l'image pour améliorer la reconnaissance des caractères
@@ -76,12 +96,29 @@ predefined_regions = {
 
 
 def nettoyer_total(total):
+    """
+    Clean the total value from text
+
+    Args:
+        total (str): the total to clean
+
+    Returns:
+        str: the total cleaned
+    """
     if "x" in total:
         return None
     return total.replace(" Euro", "")
 
 def extraire_donnees(file):
-    chemin = f"data/files/{file.split('_')[1]}/{file}"
+    """
+    Extract the data from the image
+
+    Args:
+        file (str): the path of the file to extract the data from
+
+    Returns:
+        tupple: the data extracted from the image, in dataframes: client, facture, produit, achat 
+    """
     erreurs = []
 
     try:
@@ -180,7 +217,8 @@ if __name__ == "__main__":
     print(len(all_files))
 
     for i, file in enumerate(all_files, start=1):
-        data = extraire_donnees(file)
+        chemin = f"data/files/{file.split('_')[1]}/{file}"
+        data = extraire_donnees(chemin)
         if data:
             if isinstance(data, list):
                 all_errors.extend(data)

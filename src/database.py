@@ -52,6 +52,12 @@ achat = Table(
 from sqlalchemy import text
 
 def create_tables(engine):
+    """
+    Create the tables in the database.
+
+    Args:
+        engine : the database engine
+    """
     metadata.create_all(engine)
 
 def add_data(engine, table_name, df):
