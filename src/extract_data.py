@@ -1,4 +1,4 @@
-import datetime
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv # type: ignore
 import os
@@ -25,18 +25,29 @@ def decode_qrcode(img_path):
     Returns:
         tupple: the genre, birthdate, datetime and name fac of the client in the qrcode
     """
+    scale_factor = 3
     img = cv2.imread(img_path)
-    (x, y, w, h) = (530, 5, 160, 160)
+    (x, y, w, h) = (530, 5, 180, 180)
     top_left = (x, y)
     bottom_right = (x + w, y + h)
-    cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
     roi = img[y:y+h, x:x+w]
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
+    enhanced = clahe.apply(gray)
+    new_size = int(img.shape[1] * scale_factor), int(img.shape[0] * scale_factor)
+    img_large = cv2.resize(enhanced, new_size, interpolation=cv2.INTER_LINEAR_EXACT)
     detector = cv2.QRCodeDetector()
-    data, bbox, straight_qrcode = detector.detectAndDecode(roi)
+    data, bbox, straight_qrcode = detector.detectAndDecode(img_large)
+    if not data:
+        roi = img[y:y+h, x:x+w]
+        new_size = int(roi.shape[1] * scale_factor), int(roi.shape[0] * scale_factor)
+        img_large = cv2.resize(img_large, new_size, interpolation=cv2.INTER_LINEAR_EXACT)
+        data, bbox, straight_qrcode = detector.detectAndDecode(img_large)
+    print(data)
     if data:
         data = data.split("\n")
         datetime = data[1].split("DATE:")[1]
-        birthdate = data[2].split(", birth ")[1]
+        birthdate = parse(data[2].split(", birth ")[1], languages=["fr", "en"])
         genre = data[2].split(",")[0].split(":")[1]
         fac = data[0].replace("INVOICE:FAC/","").replace("/","-")
         return genre, birthdate, datetime, fac
@@ -89,7 +100,7 @@ def process_image(input_img_path, regions, scale_factor=2):
 predefined_regions = {
     "Products": (20, 180, 420, 900),
     "Quantities_and_prices": (510, 180, 280, 900),
-    "Qrcode": (540, 8, 150, 150),
+    "Qrcode": (530, 5, 180, 180),
     "bloc": (10, 10, 520, 180)
 }
 
@@ -123,9 +134,8 @@ def extraire_donnees(file):
         erreurs = []
         extracted_texts = process_image(file, predefined_regions)
         genre, birthdate, datetime_qr, fac = decode_qrcode(file)
-        
         bloc = extracted_texts["bloc"]
-        file_date = re.search(r'FAC/(\d{4}/\d{4})', bloc) if bloc else None
+        file_date = re.search(r'FAC/\s?(\d{4}/\s?\d{4})', bloc) if bloc else None
         file_date = file_date.group(1).replace("/","-") if file_date else None
         date_facturation = re.search(r'Issue date (\d{4}-\d{2}-\d{2})', bloc) if bloc else None
         date_facturation = parse(date_facturation.group(1), languages=["fr", "en"]) if date_facturation else None
@@ -153,6 +163,9 @@ def extraire_donnees(file):
         if not products: erreurs.append("Produits non détectés")
         if not quantities: erreurs.append("Quantités non détectées")
         if not prices: erreurs.append("Prix non détectés")
+        if not birthdate: erreurs.append("Date de naissance non détectée")
+        if not genre: erreurs.append("Genre non détecté")
+        if not adresse: erreurs.append("Adresse non détectée")
         if total is None: erreurs.append("Total mal détecté")
 
         try:
@@ -169,7 +182,7 @@ def extraire_donnees(file):
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
-        id_facture = fac
+        id_facture = fac if fac else file_date
 
         df_client = pd.DataFrame([{
             "id_client": id_client,

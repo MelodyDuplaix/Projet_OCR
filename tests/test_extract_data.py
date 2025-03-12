@@ -55,12 +55,12 @@ def test_invoice3():
     assert df_facture['Total'][0]==330.58
     assert df_client['mail'][0]=='yblack@example.org'
 
-# def test_invoice4():
-#     invoice = extraire_donnees("data/test_files/FAC4_OK.png")
-#     assert invoice['status']=="success"
-#     df_client, df_facture, df_produit, df_achat = invoice["data"]
-#     assert df_facture['Total'][0]==500.88
-#     assert df_facture['id_facture'][0]=='2018-0019'
+def test_invoice4():
+    invoice = extraire_donnees("data/test_files/FAC4_OK.png")
+    assert invoice['status']=="success"
+    df_client, df_facture, df_produit, df_achat = invoice["data"]
+    assert df_facture['Total'][0]==500.88
+    assert df_facture['id_facture'][0]=='2018-0019'
 
 def test_invoice5():
     invoice = extraire_donnees("data/test_files/FAC5_OK.png")
@@ -96,4 +96,8 @@ def test_invoice10():
 
 def test_invoice11():
     invoice = extraire_donnees("data/test_files/FAC11_BAD.png")
+    assert invoice['status']!="success"
+    
+def test_invoice12():
+    invoice = extraire_donnees("data/test_files/FAC12_BAD.png")
     assert invoice['status']!="success"
