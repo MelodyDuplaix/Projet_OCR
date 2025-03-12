@@ -5,12 +5,6 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy import text
 
-load_dotenv()
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise ValueError("DATABASE_URL environment variable not set")
-engine = create_engine(database_url)
-
 metadata = MetaData(schema="melody")
 
 produit = Table(
@@ -58,16 +52,24 @@ log = Table(
     Column("erreur", String(5000))
 )
 
-def create_tables(engine):
+def create_tables():
     """
     Create the tables in the database.
-
-    Args:
-        engine : the database engine
     """
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    engine = create_engine(database_url)
     metadata.create_all(engine)
 
-def add_data(engine, table_name, df):
+def add_data(table_name, df):
+    create_tables()
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    engine = create_engine(database_url)
     if not df.empty:
         if table_name == 'client':
             id_column = 'id_client'
@@ -92,7 +94,5 @@ def add_data(engine, table_name, df):
         if not df.empty:
             df.to_sql(table_name, engine, schema='melody', if_exists='append', index=False)
 
-create_tables(engine)
-
 if __name__ == "__main__":
-    create_tables(engine)
+    create_tables()

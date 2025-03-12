@@ -10,9 +10,7 @@ import cv2
 import pytesseract
 import time
 
-load_dotenv()
-blob_keys = os.getenv("AZURE_BLOB_KEYS")
-all_files = get_all_files(blob_keys)
+
 
 def decode_qrcode(img_path):
     """
@@ -213,6 +211,9 @@ def extraire_donnees(file):
         
 
 if __name__ == "__main__":
+    load_dotenv()
+    blob_keys = os.getenv("AZURE_BLOB_KEYS")
+    all_files = get_all_files(blob_keys)
     start_time = time.time()
     all_errors = []
     print(len(all_files))
