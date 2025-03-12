@@ -231,7 +231,7 @@ def extraire_donnees(file):
         })
 
         retour =  df_client, df_facture, df_produit, df_achat
-        return {"status": "success", "fichier": file, "data": retour, "erreur": None}
+        return {"status": "success", "fichier": file, "data": retour, "erreur": "test"}
 
     except Exception as e:
         return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
