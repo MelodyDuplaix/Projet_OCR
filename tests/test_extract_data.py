@@ -8,6 +8,7 @@ from src.extract_data import extraire_donnees
 def test_file1():
     extract = extraire_donnees("data/test_files/FAC_2018_0001-654.png")
     assert extract["status"] == "success"
+    print(extract["erreur"])
     df_client, df_facture, df_produit, df_achat = extract["data"]
     assert len(df_client) == 1
     assert len(df_facture) == 1

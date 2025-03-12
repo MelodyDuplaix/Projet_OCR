@@ -203,6 +203,7 @@ def extraire_donnees(file):
         return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
     except Exception as e:
+        print(str(e))
         return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
         
 
