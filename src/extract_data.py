@@ -14,6 +14,11 @@ import time
 from sqlalchemy import create_engine
 import re
 
+load_dotenv()
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise ValueError("DATABASE_URL environment variable not set")
+engine = create_engine(database_url)
 
 
 def decode_qrcode(img_path):
@@ -231,7 +236,7 @@ def extraire_donnees(file):
         })
 
         retour =  df_client, df_facture, df_produit, df_achat
-        return {"status": "success", "fichier": file, "data": retour, "erreur": "test"}
+        return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
     except Exception as e:
         return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
@@ -267,10 +272,10 @@ if __name__ == "__main__":
             })
         if data:
             df_client, df_facture, df_produit, df_achat = data
-            add_data( "client", df_client)
-            add_data( "facture", df_facture)
-            add_data( "produit", df_produit)
-            add_data( "achat", df_achat)
+            add_data(engine, "client", df_client)
+            add_data(engine, "facture", df_facture)
+            add_data(engine, "produit", df_produit)
+            add_data(engine,  "achat", df_achat)
             
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
@@ -279,5 +284,5 @@ if __name__ == "__main__":
     print("\nTraitement terminé")
     if all_errors:
         df_errors = pd.DataFrame(all_errors)
-        add_data("log", df_errors)
+        add_data(engine, "log", df_errors)
         print(f"Nombre d'erreurs : {len(df_errors)}")

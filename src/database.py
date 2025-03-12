@@ -47,7 +47,7 @@ achat = Table(
 log = Table(
     "log",
     metadata,
-    Column("time", DateTime),
+    Column("time", DateTime, primary_key=True),
     Column("fichier", String(50)),
     Column("erreur", String(5000))
 )
@@ -63,13 +63,7 @@ def create_tables():
     engine = create_engine(database_url)
     metadata.create_all(engine)
 
-def add_data(table_name, df):
-    create_tables()
-    load_dotenv()
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable not set")
-    engine = create_engine(database_url)
+def add_data(engine, table_name, df):
     if not df.empty:
         if table_name == 'client':
             id_column = 'id_client'
