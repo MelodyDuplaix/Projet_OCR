@@ -239,5 +239,5 @@ if __name__ == "__main__":
         df_errors.to_csv("data/log_errors.csv", index=False)
         print(f"Nombre d'erreurs : {len(df_errors)}")
         for _, row in df_errors.iterrows():
-            print(f"Echec du fichier : {row["fichier"]}")
-            print(f"Erreur : {row["erreur"]}")
+            print(f"Echec du fichier : {row['fichier']}")
+            print(f"Erreur : {row['erreur']}")
