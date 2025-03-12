@@ -4,11 +4,12 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.get_all_files import get_all_files
-from src.database import add_data, engine
+from src.database import add_data
 from dateparser import parse
 import cv2
 import pytesseract
 import time
+from sqlalchemy import create_engine
 
 
 
@@ -198,11 +199,6 @@ def extraire_donnees(file):
             "quantité": list(product_quantities.values())
         })
 
-        add_data(engine, "client", df_client)
-        add_data(engine, "facture", df_facture)
-        add_data(engine, "produit", df_produit)
-        add_data(engine, "achat", df_achat)
-
         retour =  df_client, df_facture, df_produit, df_achat
         return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
@@ -214,6 +210,11 @@ if __name__ == "__main__":
     load_dotenv()
     blob_keys = os.getenv("AZURE_BLOB_KEYS")
     all_files = get_all_files(blob_keys)
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    engine = create_engine(database_url)
     start_time = time.time()
     all_errors = []
     print(len(all_files))
@@ -229,6 +230,10 @@ if __name__ == "__main__":
             all_errors.append(extract)
         if data:
             df_client, df_facture, df_produit, df_achat = data
+            add_data( "client", df_client)
+            add_data( "facture", df_facture)
+            add_data( "produit", df_produit)
+            add_data( "achat", df_achat)
             
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
