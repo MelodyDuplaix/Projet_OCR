@@ -1,10 +1,11 @@
-from sqlalchemy import DateTime, create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
+from sqlalchemy import DateTime, column, create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import pandas as pd
 from dotenv import load_dotenv
 import os
+from sqlalchemy import text
 
-load_dotenv()  # take environment variables from .env.
+load_dotenv()
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     raise ValueError("DATABASE_URL environment variable not set")
@@ -49,7 +50,13 @@ achat = Table(
     Column("quantité", Numeric(15, 2)),
 )
 
-from sqlalchemy import text
+log = Table(
+    "log",
+    metadata,
+    Column("datetime", DateTime),
+    Column("fichier", String(50)),
+    Column("erreur", String(5000))
+)
 
 def create_tables(engine):
     """

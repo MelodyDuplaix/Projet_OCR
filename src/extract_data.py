@@ -86,12 +86,13 @@ def process_image(input_img_path, regions, scale_factor=2):
 
 # Définition des blocs
 predefined_regions = {
-    "Adresse": (10, 116, 400, 60),
-    "Nom": (70, 70, 250, 30),
-    "Mail": (50, 100, 250, 20),
-    "Date": (105, 45, 250, 30),
-    "Products": (20, 180, 400, 350),
-    "Quantities_and_prices": (540, 180, 250, 350)
+    "Adresse": (10, 116, 500, 60),
+    "Nom": (70, 70, 450, 30),
+    "Mail": (50, 100, 460, 20),
+    "Date": (105, 45, 420, 30),
+    "Products": (20, 180, 420, 350),
+    "Quantities_and_prices": (510, 180, 280, 350),
+    "Qrcode": (540, 8, 150, 150)
 }
 
 
@@ -130,7 +131,6 @@ def extraire_donnees(file):
         mail_client = extracted_texts["Mail"]
         date_facturation = parse(extracted_texts["Date"], languages=["fr", "en"])
 
-        # Use QR code datetime if available, otherwise use extracted date
         if datetime_qr:
             date_facturation = parse(datetime_qr, languages=["fr", "en"])
 
@@ -185,7 +185,7 @@ def extraire_donnees(file):
             "Prix": list(unique_products.values())
         })
 
-        # Aggregate quantities for the same product
+        # Agrégation des quantités si plusieurs fois le même produit dans une facture
         product_quantities = {}
         for product, quantity in zip(products_filtre, quantities):
             product_cleaned = product.strip().lower()
