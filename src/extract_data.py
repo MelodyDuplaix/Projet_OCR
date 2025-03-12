@@ -140,8 +140,8 @@ def extraire_donnees(file):
         extracted_texts = process_image(file, predefined_regions)
         genre, birthdate, datetime_qr, fac = decode_qrcode(file)
         bloc = extracted_texts["bloc"]
-        file_date = re.search(r'FAC/\s?(\d{4}/\s?\d{4})', bloc) if bloc else None
-        file_date = file_date.group(1).replace("/","-") if file_date else None
+        invoice_line = next((line for line in bloc.split('\n') if line.strip().startswith('INVOICE FAC')), '') if bloc else ''
+        file_date = '-'.join(part.strip() for part in invoice_line.split('/')[-2:]).replace(" ","") if invoice_line else None
         date_facturation = re.search(r'Issue date (\d{4}-\d{2}-\d{2})', bloc) if bloc else None
         date_facturation = parse(date_facturation.group(1), languages=["fr", "en"]) if date_facturation else None
         nom_client = re.search(r'Bill to (.+)', bloc) if bloc else None
