@@ -186,7 +186,7 @@ def extraire_donnees(file):
             return {"status": "error", "fichier": file, "data": None,"erreur": ', '.join(erreurs)}
 
         # Génération d'identifiants uniques
-        id_client = f"CLT_{nom_client.replace(" ", "_")}" # type: ignore
+        id_client = f"CLT_{nom_client.replace(' ', '_')}" # type: ignore
         id_facture = fac if fac else file_date
 
         df_client = pd.DataFrame([{
