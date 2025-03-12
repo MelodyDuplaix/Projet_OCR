@@ -1,14 +1,9 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
+from sqlalchemy import DateTime, column, create_engine, MetaData, Table, Column, String, Date, Numeric, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import pandas as pd
 from dotenv import load_dotenv
 import os
-
-load_dotenv()  # take environment variables from .env.
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise ValueError("DATABASE_URL environment variable not set")
-engine = create_engine(database_url)
+from sqlalchemy import text
 
 metadata = MetaData(schema="melody")
 
@@ -27,7 +22,8 @@ client = Table(
     Column("Nom", String(50)),
     Column("mail", String(50)),
     Column("Adresse", String(200)),
-    Column("birthday", Date),
+    Column("Birthdate", Date),
+    Column("Genre", String(50))
 )
 
 facture = Table(
@@ -35,7 +31,7 @@ facture = Table(
     metadata,
     Column("id_facture", String(50), primary_key=True),
     Column("texte", String(1500)),
-    Column("date_facturation", Date),
+    Column("date_facturation", DateTime),
     Column("Total", Numeric)
 )
 
@@ -48,12 +44,32 @@ achat = Table(
     Column("quantité", Numeric(15, 2)),
 )
 
-from sqlalchemy import text
+log = Table(
+    "log",
+    metadata,
+    Column("datetime", DateTime),
+    Column("fichier", String(50)),
+    Column("erreur", String(5000))
+)
 
-def create_tables(engine):
+def create_tables():
+    """
+    Create the tables in the database.
+    """
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    engine = create_engine(database_url)
     metadata.create_all(engine)
 
-def add_data(engine, table_name, df):
+def add_data(table_name, df):
+    create_tables()
+    load_dotenv()
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    engine = create_engine(database_url)
     if not df.empty:
         if table_name == 'client':
             id_column = 'id_client'
@@ -78,7 +94,5 @@ def add_data(engine, table_name, df):
         if not df.empty:
             df.to_sql(table_name, engine, schema='melody', if_exists='append', index=False)
 
-create_tables(engine)
-
 if __name__ == "__main__":
-    create_tables(engine)
+    create_tables()

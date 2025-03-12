@@ -10,11 +10,47 @@ import cv2
 import pytesseract
 import time
 
-load_dotenv()
-blob_keys = os.getenv("AZURE_BLOB_KEYS")
-all_files = get_all_files(blob_keys)
+
+
+def decode_qrcode(img_path):
+    """
+    Extract the text from the qrcode in the given image
+
+    Args:
+        img_path (str): the path of the image
+
+    Returns:
+        tupple: the genre, birthdate, datetime and name fac of the client in the qrcode
+    """
+    img = cv2.imread(img_path)
+    (x, y, w, h) = (530, 5, 160, 160)
+    top_left = (x, y)
+    bottom_right = (x + w, y + h)
+    cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
+    roi = img[y:y+h, x:x+w]
+    detector = cv2.QRCodeDetector()
+    data, bbox, straight_qrcode = detector.detectAndDecode(roi)
+    if data:
+        data = data.split("\n")
+        datetime = data[1].split("DATE:")[1]
+        birthdate = data[2].split(", birth ")[1]
+        genre = data[2].split(",")[0].split(":")[1]
+        fac = data[0].replace("INVOICE:FAC/","").replace("/","-")
+        return genre, birthdate, datetime, fac
+    return None, None, None, None
 
 def process_image(input_img_path, regions, scale_factor=2):
+    """
+    Extract the data from the differents region of the given image
+
+    Args:
+        input_img_path (str): the path of the image
+        regions (dict): the regions of the image
+        scale_factor (int, optional): the scale factor of the image. Defaults to 2.
+
+    Returns:
+        dict: the extracted data from the image
+    """
     img = cv2.imread(input_img_path)
     
     # Agrandir l'image pour améliorer la reconnaissance des caractères
@@ -48,33 +84,53 @@ def process_image(input_img_path, regions, scale_factor=2):
 
 # Définition des blocs
 predefined_regions = {
-    "Adresse": (10, 116, 400, 60),
-    "Nom": (70, 70, 250, 30),
-    "Mail": (50, 100, 250, 20),
-    "Date": (105, 45, 250, 30),
-    "Products": (20, 180, 400, 350),
-    "Quantities_and_prices": (540, 180, 250, 350)
+    "Adresse": (10, 116, 500, 60),
+    "Nom": (70, 70, 450, 30),
+    "Mail": (50, 100, 460, 20),
+    "Date": (105, 45, 420, 30),
+    "Products": (20, 180, 420, 350),
+    "Quantities_and_prices": (510, 180, 280, 350),
+    "Qrcode": (540, 8, 150, 150)
 }
 
 
 def nettoyer_total(total):
-    """Vérifie si le total est bien détecté (ne doit pas contenir 'x')"""
+    """
+    Clean the total value from text
+
+    Args:
+        total (str): the total to clean
+
+    Returns:
+        str: the total cleaned
+    """
     if "x" in total:
         return None
     return total.replace(" Euro", "")
 
 def extraire_donnees(file):
-    """Extrait et nettoie les données d'un fichier"""
-    chemin = f"data/files/{file.split('_')[1]}/{file}"
-    output = "data/test.png"
+    """
+    Extract the data from the image
+
+    Args:
+        file (str): the path of the file to extract the data from
+
+    Returns:
+        dict: the data extracted from the image, in dataframes: client, facture, produit, achat , the status, the errors and the file name
+    """
+    erreurs = []
 
     try:
-        extracted_texts = process_image(chemin, predefined_regions)
-        
-        adresse = extracted_texts["Adresse"].replace("\n", " ")
+        extracted_texts = process_image(file, predefined_regions)
+        genre, birthdate, datetime_qr, fac = decode_qrcode(file)
+
+        adresse = extracted_texts["Adresse"].replace("\n", " ").replace("Address ", "")
         nom_client = extracted_texts["Nom"]
         mail_client = extracted_texts["Mail"]
         date_facturation = parse(extracted_texts["Date"], languages=["fr", "en"])
+
+        if datetime_qr:
+            date_facturation = parse(datetime_qr, languages=["fr", "en"])
 
         products = [product for product in extracted_texts["Products"].split('\n') if product != "TOTAL"]
         quantities = [quantity.split("x")[0].strip() for quantity in extracted_texts["Quantities_and_prices"].split('\n')[:-1]]
@@ -89,21 +145,21 @@ def extraire_donnees(file):
         if not quantities: erreurs.append("Quantités non détectées")
         if not prices: erreurs.append("Prix non détectés")
         if total is None: erreurs.append("Total mal détecté")
-
+        
         if erreurs:
-            print(f"Erreur dans le fichier {file} : {', '.join(erreurs)}")
-            return None
+            return {"status": "error", "fichier": file, "data": None,"erreur": ', '.join(erreurs)}
 
         # Génération d'identifiants uniques
         id_client = f"CLT_{hash(nom_client + mail_client) % 10**6}"
-        id_facture = file
+        id_facture = fac
 
         df_client = pd.DataFrame([{
             "id_client": id_client,
             "Nom": nom_client,
             "mail": mail_client.replace("| ", ""),
             "Adresse": adresse,
-            "birthday": None
+            "Birthdate": birthdate,
+            "Genre": genre
         }])
 
         df_facture = pd.DataFrame({
@@ -126,7 +182,7 @@ def extraire_donnees(file):
             "Prix": list(unique_products.values())
         })
 
-        # Aggregate quantities for the same product
+        # Agrégation des quantités si plusieurs fois le même produit dans une facture
         product_quantities = {}
         for product, quantity in zip(products_filtre, quantities):
             product_cleaned = product.strip().lower()
@@ -147,23 +203,42 @@ def extraire_donnees(file):
         add_data(engine, "produit", df_produit)
         add_data(engine, "achat", df_achat)
 
-        return df_client, df_facture, df_produit, df_achat
+        retour =  df_client, df_facture, df_produit, df_achat
+        return {"status": "success", "fichier": file, "data": retour, "erreur": None}
 
     except Exception as e:
-        print(f"Échec pour le fichier {file} : {str(e)}")
-        return None
-    
+        return {"status": "error", "fichier": file,"data": None, "erreur": str(e)}
+        
+
 if __name__ == "__main__":
+    load_dotenv()
+    blob_keys = os.getenv("AZURE_BLOB_KEYS")
+    all_files = get_all_files(blob_keys)
     start_time = time.time()
+    all_errors = []
+    print(len(all_files))
 
-    for i, file in enumerate(all_files[1300:], start=1):
-        data = extraire_donnees(file)
-
+    for i, file in enumerate(all_files, start=1):
+        chemin = f"data/files/{file.split('_')[1]}/{file}"
+        extract = extraire_donnees(chemin)
+        status = extract["status"]
+        file = extract["fichier"]
+        erreur = extract["erreur"]
+        data = extract["data"]
+        if erreur:
+            all_errors.append(extract)
         if data:
             df_client, df_facture, df_produit, df_achat = data
-
+            
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
             print(f"{i} fichiers traités en {elapsed_time:.2f} secondes")
 
     print("\nTraitement terminé")
+    if all_errors:
+        df_errors = pd.DataFrame(all_errors)
+        df_errors.to_csv("data/log_errors.csv", index=False)
+        print(f"Nombre d'erreurs : {len(df_errors)}")
+        for _, row in df_errors.iterrows():
+            print(f"Echec du fichier : {row['fichier']}")
+            print(f"Erreur : {row['erreur']}")

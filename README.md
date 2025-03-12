@@ -2,29 +2,35 @@
 
 ## Description
 
-Brève description de l'application et de sa fonctionnalité principale.
+Cette application a pour objectif d'automatiser la gestion et l'analyse des factures, en utilisant de l'ocr pour y extraire des données, les stocker dans une base de données, puis les analyser et les présenter dans une interface web. Elle intègre une démonstration d'extraction sur un fichier, un dashboard d'analyse des données de facturations avec un système de recommandation de produits pour les clients et un système de clustering des clients, ainsi qu'une dashboard de monitoring de l'application.
+
 
 ## Fonctionnalités
 
-* Liste des fonctionnalités clés.
-* Détail des fonctionnalités si nécessaire.
+* Extraction des données des factures via OCR.
+* Stockage des données extraites dans une base de données.
+* Analyse des données de facturation.
+* Système de recommandation de produits pour les clients.
+* Clustering des clients.
+* Dashboard de monitoring de l'application.
+
 
 ## Technologies utilisées
 
-* Langages de programmation (Python, Java, etc.)
-* Frameworks (Flask, Django, Spring, etc.)
-* Bases de données (SQL, NoSQL, etc.)
-* Autres technologies (Cloud, APIs, etc.)
+* FastAPI
+* Tesseract pour l'ocr, avec OpenCV pour la manipulation des images
+* Base de données PostGreSQL Azure
 
 ## Installation
 
-Instructions d'installation étape par étape.  Inclure les dépendances nécessaires.  Exemple:
+préparation de l'environnement:
 
 ```bash
+python -m venv venv
+venv\Scripts\activate (ou source venv\Scripts\activate sur linux)
 pip install -r requirements.txt
 ```
 
 ## Utilisation
 
-Instructions d'utilisation de l'application.  Inclure des exemples d'utilisation si possible.
 
