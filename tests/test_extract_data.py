@@ -97,3 +97,7 @@ def test_invoice10():
 def test_invoice11():
     invoice = extraire_donnees("data/test_files/FAC11_BAD.png")
     assert invoice['status']!="success"
+    
+def test_invoice12():
+    invoice = extraire_donnees("data/test_files/FAC12_BAD.png")
+    assert invoice['status']!="success"
