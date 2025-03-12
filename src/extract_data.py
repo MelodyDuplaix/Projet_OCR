@@ -123,8 +123,8 @@ def extraire_donnees(file):
     erreurs = []
 
     try:
-        extracted_texts = process_image(chemin, predefined_regions)
-        genre, birthdate, datetime_qr, fac = decode_qrcode(chemin)
+        extracted_texts = process_image(file, predefined_regions)
+        genre, birthdate, datetime_qr, fac = decode_qrcode(file)
 
         adresse = extracted_texts["Adresse"].replace("\n", " ").replace("Address ", "")
         nom_client = extracted_texts["Nom"]
@@ -228,7 +228,7 @@ if __name__ == "__main__":
             all_errors.append(extract)
         if data:
             df_client, df_facture, df_produit, df_achat = data
-
+            
         if i % 100 == 0:
             elapsed_time = time.time() - start_time
             print(f"{i} fichiers traités en {elapsed_time:.2f} secondes")
