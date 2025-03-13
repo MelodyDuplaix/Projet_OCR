@@ -14,13 +14,6 @@ import time
 from sqlalchemy import create_engine
 import re
 
-load_dotenv()
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise ValueError("DATABASE_URL environment variable not set")
-engine = create_engine(database_url)
-
-
 def decode_qrcode(img_path):
     """
     Extract the text from the qrcode in the given image
