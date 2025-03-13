@@ -214,7 +214,7 @@ def extraire_donnees(file):
                 unique_products[product_cleaned] = price
 
         df_produit = pd.DataFrame({
-            "id_produit": [f"PROD_{"_".join(n.split(" ")[:3])}" for n in unique_products.keys()],
+            "id_produit": [f"PROD_{'_'.join(n.split(' ')[:3])}" for n in unique_products.keys()],
             "nom": list(unique_products.keys()),
             "prix": list(unique_products.values())
         })
@@ -229,7 +229,7 @@ def extraire_donnees(file):
                 product_quantities[product_cleaned] = int(quantity)
 
         df_achat = pd.DataFrame({
-            "id_produit": [f"PROD_{"_".join(n.split(" ")[:3])}" for n in unique_products.keys()],
+            "id_produit": [f"PROD_{'_'.join(n.split(' ')[:3])}" for n in unique_products.keys()],
             "id_client": [id_client] * len(product_quantities),
             "id_facture": [id_facture] * len(product_quantities),
             "quantité": list(product_quantities.values())
