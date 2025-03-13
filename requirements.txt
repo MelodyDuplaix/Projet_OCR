@@ -19,3 +19,7 @@ dateparser
 # database
 sqlalchemy
 psycopg2
+
+# application
+fastapi
+pydantic
