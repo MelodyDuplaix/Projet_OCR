@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -15,6 +15,16 @@ engine = create_engine(database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = {"schema": "melody"}
+
+    username = Column(String(50), primary_key=True)
+    full_name = Column(String(50))
+    email = Column(String(50))
+    hashed_password = Column(String(200))
+    disabled = Column(Boolean, default=False)
 
 class Produit(Base):
     __tablename__ = "produit"
@@ -65,6 +75,15 @@ def create_tables():
     Create the tables in the database.
     """
     Base.metadata.create_all(engine)
+
+def add_user(username, full_name, email, hashed_password, disabled=False):
+    """
+    Add a new user to the database.
+    """
+    user = User(username=username, full_name=full_name, email=email, hashed_password=hashed_password, disabled=disabled)
+    with SessionLocal() as session:
+        session.add(user)
+        session.commit()
 
 def add_data(engine, table_name, df):
     """
@@ -178,7 +197,6 @@ def add_log(time, file, error):
     args:
         time (str): The time of the log.
         file (str): The file of the log.
-        error (str): The error of the log.
     """
     log = Log(time=time, fichier=file, erreur=error)
     with SessionLocal() as session:

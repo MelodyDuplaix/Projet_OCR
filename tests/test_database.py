@@ -36,8 +36,6 @@ def engine():
 @pytest.fixture(scope="function")
 def setup_database(engine):
     Base.metadata.create_all(engine)
-    yield
-    Base.metadata.drop_all(engine)
 
 def test_add_client(engine, setup_database):
     add_client(
