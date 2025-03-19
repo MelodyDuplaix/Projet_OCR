@@ -102,9 +102,6 @@ def add_data(engine, table_name, df):
         elif table_name == 'facture':
             id_column = 'id_facture'
             Model = Facture
-        elif table_name == 'achat':
-            id_column = 'id_produit'
-            Model = Achat
         elif table_name == 'log':
             id_column = 'time'
             Model = Log
@@ -201,6 +198,95 @@ def add_log(time, file, error):
         session.add(log)
         session.commit()
 
+def get_all_factures():
+    with SessionLocal() as session:
+        return session.query(Facture).all()
+
+def get_facture_by_id(id_facture: str):
+    with SessionLocal() as session:
+        facture = session.query(Facture).filter(Facture.id_facture == id_facture).first()
+        if facture:
+            purchases = session.query(Achat).filter(Achat.id_facture == id_facture).all()
+            products_data = []
+            client = None
+            for purchase in purchases:
+                client = session.query(Client).filter(Client.id_client == purchase.id_client).first()
+                product = session.query(Produit).filter(Produit.id_produit == purchase.id_produit).first()
+                products_data.append({
+                    "product": product,
+                    "quantity": purchase.quantité
+                })
+            facture_data = {
+                "facture": facture,
+                "client": client,
+                "products": products_data
+            }
+            return facture_data
+        return None
+
+def get_all_clients():
+    with SessionLocal() as session:
+        return session.query(Client).all()
+
+def get_client_by_id(id_client: str):
+    with SessionLocal() as session:
+        client = session.query(Client).filter(Client.id_client == id_client).first()
+        if client:
+            purchases = session.query(Achat).filter(Achat.id_client == id_client).all()
+            factures_data = []
+            for purchase in purchases:
+                facture = session.query(Facture).filter(Facture.id_facture == purchase.id_facture).first()
+                products_data = []
+                products = session.query(Achat).filter(Achat.id_facture == purchase.id_facture).all()
+                for prod in products:
+                    product = session.query(Produit).filter(Produit.id_produit == prod.id_produit).first()
+                    products_data.append({
+                        "product": product,
+                        "quantity": prod.quantité
+                    })
+                factures_data.append({
+                    "facture": facture,
+                    "products": products_data
+                })
+            client_data = {
+                "client": client,
+                "factures": factures_data
+            }
+            return client_data
+        return None
+
+def get_all_achats():
+    with SessionLocal() as session:
+        return session.query(Achat).all()
+
+def get_achat_by_id(id_produit: str, id_client: str, id_facture: str):
+    with SessionLocal() as session:
+        return session.query(Achat).filter(Achat.id_produit == id_produit, Achat.id_client == id_client, Achat.id_facture == id_facture).first()
+
+def get_all_produits():
+    with SessionLocal() as session:
+        return session.query(Produit).all()
+
+def get_produit_by_id(id_produit: str):
+    with SessionLocal() as session:
+        produit = session.query(Produit).filter(Produit.id_produit == id_produit).first()
+        if produit:
+            purchases = session.query(Achat).filter(Achat.id_produit == id_produit).all()
+            purchases_data = []
+            for purchase in purchases:
+                client = session.query(Client).filter(Client.id_client == purchase.id_client).first()
+                facture = session.query(Facture).filter(Facture.id_facture == purchase.id_facture).first()
+                purchases_data.append({
+                    "purchase": purchase,
+                    "client": client,
+                    "facture": facture
+                })
+            produit_data = {
+                "produit": produit,
+                "purchases": purchases_data
+            }
+            return produit_data
+        return None
 
 def execute_query(sql_query):
     """

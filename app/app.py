@@ -18,8 +18,18 @@ from app.auth.auth import authenticate_user, create_access_token, get_current_ac
 from app.auth.models import User
 from app.auth.models import Token
 from app.helpers.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
+from src.database import get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/token")
 async def login_for_access_token(
@@ -73,3 +83,51 @@ async def create_item(
     except Exception as e:
         add_log(datetime.datetime.now(), file.filename, str(e))
         return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
+
+@app.get("/factures")
+async def read_all_factures():
+    factures = get_all_factures()
+    return factures
+
+@app.get("/factures/{id_facture}")
+async def read_facture(id_facture: str):
+    facture_data = get_facture_by_id(id_facture)
+    if facture_data is None:
+        raise HTTPException(status_code=404, detail="Facture not found")
+    return facture_data
+
+@app.get("/clients")
+async def read_all_clients():
+    clients = get_all_clients()
+    return clients
+
+@app.get("/clients/{id_client}")
+async def read_client(id_client: str):
+    client_data = get_client_by_id(id_client)
+    if client_data is None:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return client_data
+
+@app.get("/achats")
+async def read_all_achats():
+    achats = get_all_achats()
+    return achats
+
+@app.get("/achats/{id_produit}/{id_client}/{id_facture}")
+async def read_achat(id_produit: str, id_client: str, id_facture: str):
+    achat = get_achat_by_id(id_produit, id_client, id_facture)
+    if achat is None:
+        raise HTTPException(status_code=404, detail="Achat not found")
+    return achat
+
+@app.get("/produits")
+async def read_all_produits():
+    produits = get_all_produits()
+    return produits
+
+@app.get("/produits/{id_produit}")
+async def read_produit(id_produit: str):
+    produit_data = get_produit_by_id(id_produit)
+    if produit_data is None:
+        raise HTTPException(status_code=404, detail="Produit not found")
+    return produit_data
