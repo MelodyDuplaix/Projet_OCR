@@ -6,7 +6,6 @@ import os
 import pandas as pd
 from sqlalchemy import text
 
-load_dotenv()
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     raise ValueError("DATABASE_URL environment variable not set")
