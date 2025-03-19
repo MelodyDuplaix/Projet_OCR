@@ -1,3 +1,4 @@
+import datetime
 import os
 from typing import Annotated
 from fastapi.responses import JSONResponse
@@ -8,7 +9,7 @@ import sys
 import os
 from datetime import timedelta
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.database import create_tables, add_user, add_data, engine
+from src.database import create_tables, add_user, add_data, engine, add_log
 from src.extract_data import extraire_donnees
 from app.auth import auth
 from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
@@ -82,4 +83,5 @@ async def create_item(
         }
         return JSONResponse(content={"status": "success", "erreur": None, "data": data})
     else:
+        add_log(datetime.datetime.now(), file_location, extract["erreur"])
         return JSONResponse(content={"status": "error", "erreur": extract["erreur"], "data": None})

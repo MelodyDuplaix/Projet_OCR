@@ -6,9 +6,7 @@ import os
 import pandas as pd
 from sqlalchemy import text
 
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise ValueError("DATABASE_URL environment variable not set")
+database_url = os.getenv("DATABASE_URL", "postgresql://psqladmin:GRETAP4!2025***@projetocr-psqlflexibleserver.postgres.database.azure.com:5432/postgres")
 
 engine = create_engine(database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
