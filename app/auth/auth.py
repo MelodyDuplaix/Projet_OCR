@@ -9,10 +9,16 @@ from pydantic import BaseModel
 from app.auth.models import TokenData, User, UserInDB
 from fastapi import Depends
 from src.database import SessionLocal, User as DBUser
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.database import create_tables, add_user
+from dotenv import load_dotenv
 
-SECRET_KEY = "87e4f1e6d159aae4d0dbd8873ab4111a34bb78b011c1cd3b321f49c3eb1fa361"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -88,3 +94,16 @@ async def get_current_active_user(
     if current_user is None or getattr(current_user, 'disabled', False):
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+if __name__ == "__main__":
+    create_tables()
+    try:
+        add_user(
+        username="johndoe",
+        full_name="John Doe",
+        email="johndoe@example.com",
+        hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+        disabled=False,
+        )
+    except:
+        print("User already exists")

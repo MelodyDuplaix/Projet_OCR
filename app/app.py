@@ -18,19 +18,6 @@ from app.auth.models import Token
 
 app = FastAPI()
 
-create_tables()
-try:
-    add_user(
-    username="johndoe",
-    full_name="John Doe",
-    email="johndoe@example.com",
-    hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-    disabled=False,
-    )
-except:
-    print("User already exists")
-
-
 
 @app.post("/token")
 async def login_for_access_token(
@@ -55,13 +42,6 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return current_user
-
-
-@app.get("/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]
 
 @app.get("/")
 def read_root():
