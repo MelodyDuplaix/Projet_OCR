@@ -7,7 +7,9 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import sys
 import sys
 import os
+import json
 from datetime import timedelta
+from typing import Optional
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.database import create_tables, add_user, add_data, engine, add_log
 from src.extract_data import extraire_donnees
@@ -15,6 +17,7 @@ from app.auth import auth
 from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
 from app.auth.models import User
 from app.auth.models import Token
+from app.helpers.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
 
 app = FastAPI()
 
@@ -51,37 +54,22 @@ async def create_item(
     file: UploadFile = File(...),
     current_user: bool = Depends(get_current_user)  # Using the dependency
 ):
-    os.makedirs("temp", exist_ok=True)
-    file_location = f"temp/{file.filename}"
     try:
-        with open(file_location, "wb") as f:
-            f.write(file.file.read())
+        file_location = await save_uploaded_file(file)
+        extract_result = extract_data_from_file(file_location)
+
+        add_data_to_database(engine, extract_result)
+        data = convert_dataframes_to_json(extract_result)
+
+        if data is None:
+            add_log(datetime.datetime.now(), file_location, extract_result["erreur"])
+            return JSONResponse(content={"status": "error", "erreur": extract_result["erreur"], "data": None})
+        else:
+            return JSONResponse(content={"status": "success", "erreur": None, "data": data})
+
+    except HTTPException as http_exception:
+        add_log(datetime.datetime.now(), file.filename, http_exception.detail)
+        return JSONResponse(content={"status": "error", "erreur": http_exception.detail, "data": None})
     except Exception as e:
-        return JSONResponse(content={"status": "error", "erreur": f"Failed to save file: {str(e)}"})
-
-    if not os.path.exists(file_location):
-        return JSONResponse(content={"status": "error", "erreur": "File not saved correctly or path is invalid"})
-
-    print(f"File saved at {file_location}")
-    extract = extraire_donnees(file_location)
-    if extract["status"] == "success":
-        df_client, df_facture, df_produit, df_achat = extract["data"]
-        add_data(engine, "client", df_client)
-        add_data(engine, "facture", df_facture)
-        add_data(engine, "produit", df_produit)
-        add_data(engine, "achat", df_achat)
-        df_client = df_client.to_json(orient="records", date_format="iso")
-        df_facture = df_facture.to_json(orient="records", date_format="iso")
-        df_produit = df_produit.to_json(orient="records", date_format="iso")
-        import json
-        df_achat = df_achat.to_json(orient="records", date_format="iso")
-        data = {
-            "client": json.loads(df_client),
-            "facture": json.loads(df_facture),
-            "produit": json.loads(df_produit),
-            "achat": json.loads(df_achat)
-        }
-        return JSONResponse(content={"status": "success", "erreur": None, "data": data})
-    else:
-        add_log(datetime.datetime.now(), file_location, extract["erreur"])
-        return JSONResponse(content={"status": "error", "erreur": extract["erreur"], "data": None})
+        add_log(datetime.datetime.now(), file.filename, str(e))
+        return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})

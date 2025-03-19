@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from sqlalchemy import text
 
-database_url = os.getenv("DATABASE_URL", "postgresql://psqladmin:GRETAP4!2025***@projetocr-psqlflexibleserver.postgres.database.azure.com:5432/postgres")
+database_url = os.getenv("DATABASE_URL")
 
 engine = create_engine(database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -194,6 +194,7 @@ def add_log(time, file, error):
     args:
         time (str): The time of the log.
         file (str): The file of the log.
+        error (str): The error of the log.
     """
     log = Log(time=time, fichier=file, erreur=error)
     with SessionLocal() as session:
