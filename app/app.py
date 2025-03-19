@@ -15,9 +15,7 @@ from app.auth.auth import authenticate_user, create_access_token, get_current_ac
 from app.auth.models import User
 from app.auth.models import Token
 
-
 app = FastAPI()
-
 
 @app.post("/token")
 async def login_for_access_token(
