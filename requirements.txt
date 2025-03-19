@@ -19,3 +19,17 @@ dateparser
 # database
 sqlalchemy
 psycopg2
+
+# analyses
+matplotlib
+plotly
+nbformat
+scikit-learn
+
+# application
+fastapi[standard]
+pydantic
+passlib[bpcrypt]
+jose
+pyjwt
+bcrypt
