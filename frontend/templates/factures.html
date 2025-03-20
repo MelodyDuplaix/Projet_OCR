@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Factures{% endblock %}
+
+{% block content %}
+    <h1>Factures</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    ID Facture
+                    <a href="?sort=id_facture&order=asc">&#9650;</a>
+                    <a href="?sort=id_facture&order=desc">&#9660;</a>
+                </th>
+                <th>
+                    Date Facturation
+                    <a href="?sort=date_facturation&order=asc">&#9650;</a>
+                    <a href="?sort=date_facturation&order=desc">&#9660;</a>
+                </th>
+                <th>
+                    Total
+                    <a href="?sort=total&order=asc">&#9650;</a>
+                    <a href="?sort=total&order=desc">&#9660;</a>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for facture in factures %}
+            <tr>
+                <td>{{ facture.id_facture }}</td> 
+                <td>{{ facture.date_facturation }}</td>
+                <td>{{ facture.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        function sortTable(column, order) {
+            const table = document.querySelector('.table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            const collator = new Intl.Collator(['en', 'fr'], { numeric: true, sensitivity: 'base' });
+
+            rows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelector(`td:nth-child(${column})`).textContent.trim();
+                const cellB = rowB.querySelector(`td:nth-child(${column})`).textContent.trim();
+
+                if (order === 'asc') {
+                    return collator.compare(cellA, cellB);
+                } else {
+                    return collator.compare(cellB, cellA);
+                }
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        document.querySelectorAll('th a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const [sort, order] = this.href.split('?')[1].split('&').map(param => param.split('=')[1]);
+                const column = this.parentNode.cellIndex + 1;
+                sortTable(column, order);
+            });
+        });
+    </script>
+{% endblock %}

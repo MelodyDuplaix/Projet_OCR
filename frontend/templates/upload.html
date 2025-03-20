@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Upload{% endblock %}
+{% block content %}
+    <h2>Upload File</h2>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="file" class="form-label">Choose file</label>
+            <input class="form-control" type="file" id="file" name="file">
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    {% if facture %}
+        <h2>Invoice Information:</h2>
+        <div class="row">
+            <div class="col-md-6">
+                {% if image_filename %}
+                    <img src="/temp/{{ image_filename }}" alt="Uploaded Image" style="max-width: 100%;">
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if client %}
+                    <h2>Client Information:</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Birthdate</th>
+                                <th>Genre</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in client %}
+                            <tr>
+                                <td>{{ c.id_client }}</td>
+                                <td>{{ c.nom }}</td>
+                                <td>{{ c.birthdate }}</td>
+                                <td>{{ c.genre }}</td>
+                                <td>{{ c.mail }}</td>
+                                <td>{{ c.adresse }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+
+                {% if produit and achat %}
+                    <h2>Product and Purchase Information:</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in achat %}
+                                {% for p in produit %}
+                                    {% if p.id_produit == a.id_produit %}
+                                        <tr>
+                                            <td>{{ p.id_produit }}</td>
+                                            <td>{{ p.nom }}</td>
+                                            <td>{{ p.prix }}</td>
+                                            <td>{{ a.quantité }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+
+                {% if facture %}
+                    <h2>Invoice Information:</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in facture %}
+                            <tr>
+                                <td>{{ f.id_facture }}</td>
+                                <td>{{ f.date_facturation }}</td>
+                                <td>{{ f.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

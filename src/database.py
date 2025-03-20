@@ -1,3 +1,4 @@
+from matplotlib import table
 from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -6,6 +7,7 @@ import os
 import pandas as pd
 from sqlalchemy import text
 
+load_dotenv()
 database_url = os.getenv("DATABASE_URL")
 
 engine = create_engine(database_url)
@@ -84,13 +86,13 @@ def add_user(username, full_name, email, hashed_password, disabled=False):
 
 def add_data(engine, table_name, df):
     """
-    Executes a SQL query and returns the result as a Pandas DataFrame.
+    Add data to the specified table in the database.
     
-    args:
-        sql_query (str): The SQL query to execute.
-    
-    returns:
-        pd.DataFrame: The result of the query as a Pandas DataFrame.
+
+    Args:
+        engine (engine): the engine to connect to the database
+        table_name (str): the name of the table to add the data to
+        df (pd.DataFrame): the dataframe to add to the database
     """
     if not df.empty:
         if table_name == 'client':
@@ -108,8 +110,28 @@ def add_data(engine, table_name, df):
         else:
             id_column = None
             Model = None
-
-        if id_column and Model:
+            
+        if table_name == 'achat':
+            with SessionLocal() as session:
+                for _, row in df.iterrows():
+                    data = row.to_dict()
+                    # Check if the record already exists
+                    existing_record = session.query(Achat).filter_by(
+                        id_produit=data['id_produit'],
+                        id_client=data['id_client'],
+                        id_facture=data['id_facture']
+                    ).first()
+                    if not existing_record:
+                        try:
+                            session.add(Achat(**data))
+                            session.commit()
+                        except:
+                            session.rollback()
+                            pass
+                    else:
+                        session.rollback()
+                        pass
+        elif id_column and Model:
             existing_ids = set()
             with engine.connect() as connection:
                 result = connection.execute(text(f"SELECT {id_column} FROM melody.\"{table_name}\""))

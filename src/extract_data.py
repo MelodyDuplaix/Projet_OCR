@@ -23,28 +23,18 @@ def decode_qrcode(img_path):
     Returns:
         tupple: the genre, birthdate, datetime and name fac of the client in the qrcode
     """
-    scale_factor = 3
     img = cv2.imread(img_path)
-    (x, y, w, h) = (530, 5, 180, 180)
+    (x, y, w, h) = (530, 5, 160, 160)
     top_left = (x, y)
     bottom_right = (x + w, y + h)
+    cv2.rectangle(img, top_left, bottom_right, (0, 255, 0), 2)
     roi = img[y:y+h, x:x+w]
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(10,10))
-    enhanced = clahe.apply(gray)
-    new_size = int(img.shape[1] * scale_factor), int(img.shape[0] * scale_factor)
-    img_large = cv2.resize(enhanced, new_size, interpolation=cv2.INTER_LINEAR_EXACT)
     detector = cv2.QRCodeDetector()
-    data, bbox, straight_qrcode = detector.detectAndDecode(img_large)
-    if not data:
-        roi = img[y:y+h, x:x+w]
-        new_size = int(roi.shape[1] * scale_factor), int(roi.shape[0] * scale_factor)
-        img_large = cv2.resize(img_large, new_size, interpolation=cv2.INTER_LINEAR_EXACT)
-        data, bbox, straight_qrcode = detector.detectAndDecode(img_large)
+    data, bbox, straight_qrcode = detector.detectAndDecode(roi)
     if data:
         data = data.split("\n")
         datetime = data[1].split("DATE:")[1]
-        birthdate = parse(data[2].split(", birth ")[1], languages=["fr", "en"])
+        birthdate = data[2].split(", birth ")[1]
         genre = data[2].split(",")[0].split(":")[1]
         fac = data[0].replace("INVOICE:FAC/","").replace("/","-")
         return genre, birthdate, datetime, fac
