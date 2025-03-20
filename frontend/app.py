@@ -30,18 +30,7 @@ def login():
 
 @app.route("/")
 def index():
-    token = session.get("token")
-    if not token:
-        return redirect(url_for("login"))
-    headers = {"Authorization": f"Bearer {token}"}
-    try:
-        response = requests.get(f"{FASTAPI_URL}/users/me/", headers=headers)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        user_data = response.json()
-        return render_template("index.html", username=user_data.get("username", "User"))
-    except requests.exceptions.RequestException as e:
-        # Handle potential errors from the FastAPI backend
-        return render_template("index.html", error=str(e))
+    return redirect(url_for("upload"))
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
@@ -55,6 +44,8 @@ def upload():
             headers = {"Authorization": f"Bearer {token}"}
             try:
                 response = requests.post(f"{FASTAPI_URL}/process", files={"file": (file.filename, file.stream)}, headers=headers)
+                if response.status_code == 401:
+                    return redirect(url_for("logout"))
                 response.raise_for_status()
                 result = response.json()
                 achat = result["data"]["achat"]
@@ -89,6 +80,8 @@ def factures():
         params["order"] = order
     try:
         response = requests.get(f"{FASTAPI_URL}/factures", headers=headers, params=params)
+        if response.status_code == 401:
+            return redirect(url_for("logout"))
         response.raise_for_status()
         factures = response.json()
         return render_template("factures.html", factures=factures)
