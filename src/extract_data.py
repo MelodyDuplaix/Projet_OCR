@@ -57,7 +57,7 @@ def process_image(input_img_path, regions, scale_factor=2):
     Args:
         input_img_path (str): the path of the image
         regions (dict): the regions of the image
-        scale_factor (int, optional): the scale factor of the image. Defaults to 2.
+        scale_factor (int): the scale factor of the image.
 
     Returns:
         dict: the extracted data from the image
@@ -117,13 +117,13 @@ def nettoyer_total(total):
 
 def extract_data_raw(file):
     """
-    Extract the raw data from the image
+    Extract the raw data from the image.
 
     Args:
-        file (str): the path of the file to extract the data from
+        file (str): the path of the file to extract the data from.
 
     Returns:
-        dict: the data extracted from the image, including status, filename, error, and a dictionary of extracted variables
+        dict: the data extracted from the image, including status, filename, error, and a dictionary of extracted variables.
     """
     erreurs = []
 
@@ -199,13 +199,13 @@ def extract_data_raw(file):
 
 def extraire_donnees(file):
     """
-    Extract the data from the image and return it in dataframes
+    Extract the data from the image and return it in dataframes.
 
     Args:
-        file (str): the path of the file to extract the data from
+        file (str): the path of the file to extract the data from.
 
     Returns:
-        dict: the data extracted from the image, in dataframes: client, facture, produit, achat , the status, the errors and the file name
+        dict: the data extracted from the image, in dataframes: client, facture, produit, achat , the status, the errors and the file name.
     """
     raw_data = extract_data_raw(file)
     if raw_data["status"] == "error":
@@ -227,13 +227,13 @@ def extraire_donnees(file):
     extracted_texts = variables["extracted_texts"]
 
     # Génération d'identifiants uniques
-    id_client = f"CLT_{nom_client.replace(' ', '_')}" if nom_client else None # type: ignore
+    id_client = f"CLT_{nom_client.replace(' ', '_')}" if nom_client else None
     id_facture = fac if fac else file_date
 
     df_client = pd.DataFrame([{
         "id_client": id_client,
         "nom": nom_client,
-        "mail": mail_client.replace("| ", "") if mail_client else None, # type: ignore
+        "mail": mail_client.replace("| ", "") if mail_client else None,
         "adresse": adresse,
         "birthdate": birthdate,
         "genre": genre

@@ -87,7 +87,6 @@ def add_user(username, full_name, email, hashed_password, disabled=False):
 def add_data(engine, table_name, df):
     """
     Add data to the specified table in the database.
-    
 
     Args:
         engine (engine): the engine to connect to the database
@@ -225,6 +224,15 @@ def get_all_factures():
         return session.query(Facture).all()
 
 def get_facture_by_id(id_facture: str):
+    """
+    Get facture by id.
+
+    Args:
+        id_facture (str): The id of the facture.
+
+    Returns:
+        dict: The facture data.
+    """
     with SessionLocal() as session:
         facture = session.query(Facture).filter(Facture.id_facture == id_facture).first()
         if facture:
@@ -251,6 +259,15 @@ def get_all_clients():
         return session.query(Client).all()
 
 def get_client_by_id(id_client: str):
+    """
+    Get client by id.
+
+    Args:
+        id_client (str): The id of the client.
+
+    Returns:
+        dict: The client data.
+    """
     with SessionLocal() as session:
         client = session.query(Client).filter(Client.id_client == id_client).first()
         if client:
@@ -290,6 +307,15 @@ def get_all_produits():
         return session.query(Produit).all()
 
 def get_produit_by_id(id_produit: str):
+    """
+    Get produit by id.
+
+    Args:
+        id_produit (str): The id of the produit.
+
+    Returns:
+        dict: The produit data.
+    """
     with SessionLocal() as session:
         produit = session.query(Produit).filter(Produit.id_produit == id_produit).first()
         if produit:
@@ -314,10 +340,10 @@ def execute_query(sql_query):
     """
     Executes a SQL query and returns the result as a Pandas DataFrame.
     
-    args:
+    Args:
         sql_query (str): The SQL query to execute.
     
-    returns:
+    Returns:
         pd.DataFrame: The result of the query as a Pandas DataFrame.
     """
     load_dotenv()

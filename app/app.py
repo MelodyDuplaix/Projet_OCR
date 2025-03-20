@@ -35,6 +35,15 @@ app.add_middleware(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
+    """
+    Login for access token.
+
+    Args:
+        form_data (Annotated[OAuth2PasswordRequestForm, Depends()]): The form data.
+
+    Returns:
+        Token: The access token.
+    """
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -64,6 +73,16 @@ async def create_item(
     file: UploadFile = File(...),
     current_user: bool = Depends(get_current_user)  # Using the dependency
 ):
+    """
+    Create item.
+
+    Args:
+        file (UploadFile): The uploaded file.
+        current_user (bool): The current user.
+
+    Returns:
+        JSONResponse: The JSON response.
+    """
     try:
         file_location = await save_uploaded_file(file)
         extract_result = extract_data_from_file(file_location)
@@ -86,11 +105,21 @@ async def create_item(
 
 @app.get("/factures")
 async def read_all_factures():
+    """
+    Read all factures.
+    Returns:
+        list: The list of factures.
+    """
     factures = get_all_factures()
     return factures
 
 @app.get("/factures/{id_facture}")
 async def read_facture(id_facture: str):
+    """
+    Read facture by id.
+    Args:
+        id_facture (str): The id of the facture.
+    """
     facture_data = get_facture_by_id(id_facture)
     if facture_data is None:
         raise HTTPException(status_code=404, detail="Facture not found")
@@ -98,11 +127,19 @@ async def read_facture(id_facture: str):
 
 @app.get("/clients")
 async def read_all_clients():
+    """
+    Read all clients.
+    """
     clients = get_all_clients()
     return clients
 
 @app.get("/clients/{id_client}")
 async def read_client(id_client: str):
+    """
+    Read client by id.
+    Args:
+        id_client (str): The id of the client.
+    """
     client_data = get_client_by_id(id_client)
     if client_data is None:
         raise HTTPException(status_code=404, detail="Client not found")
@@ -110,11 +147,21 @@ async def read_client(id_client: str):
 
 @app.get("/achats")
 async def read_all_achats():
+    """
+    Read all achats.
+    """
     achats = get_all_achats()
     return achats
 
 @app.get("/achats/{id_produit}/{id_client}/{id_facture}")
 async def read_achat(id_produit: str, id_client: str, id_facture: str):
+    """
+    Read achat by id.
+    Args:
+        id_produit (str): The id of the produit.
+        id_client (str): The id of the client.
+        id_facture (str): The id of the facture.
+    """
     achat = get_achat_by_id(id_produit, id_client, id_facture)
     if achat is None:
         raise HTTPException(status_code=404, detail="Achat not found")
@@ -122,11 +169,19 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
 
 @app.get("/produits")
 async def read_all_produits():
+    """
+    Read all produits.
+    """
     produits = get_all_produits()
     return produits
 
 @app.get("/produits/{id_produit}")
 async def read_produit(id_produit: str):
+    """
+    Read produit by id.
+    Args:
+        id_produit (str): The id of the produit.
+    """
     produit_data = get_produit_by_id(id_produit)
     if produit_data is None:
         raise HTTPException(status_code=404, detail="Produit not found")
