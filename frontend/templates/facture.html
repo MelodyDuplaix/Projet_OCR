@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Invoice Details{% endblock %}
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    {% if facture %}
+        <h2>Invoice Information:</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ facture.id_facture }}</td>
+                    <td>{{ facture.date_facturation }}</td>
+                    <td>{{ facture.total }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Client Information:</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Birthdate</th>
+                    <th>Genre</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ client.id_client }}</td>
+                    <td>{{ client.nom }}</td>
+                    <td>{{ client.birthdate }}</td>
+                    <td>{{ client.genre }}</td>
+                    <td>{{ client.mail }}</td>
+                    <td>{{ client.adresse }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Product Information:</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in produit %}
+                <tr>
+                    <td>{{ p.id_produit }}</td>
+                    <td>{{ p.nom }}</td>
+                    <td>{{ p.prix }}</td>
+                    <td>{{ p.quantite }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

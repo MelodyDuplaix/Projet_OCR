@@ -8,9 +8,16 @@ import pandas as pd
 from sqlalchemy import text
 
 load_dotenv()
-database_url = os.getenv("DATABASE_URL")
 
-engine = create_engine(database_url)
+try:
+    database_url = os.getenv("DATABASE_URL")
+    if database_url is None:
+        raise ValueError("DATABASE_URL environment variable is not set.")
+    engine = create_engine(database_url)
+except ValueError as e:
+    print(f"Error: {e}")
+    exit(1) # Exit with an error code
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -347,14 +354,19 @@ def execute_query(sql_query):
         pd.DataFrame: The result of the query as a Pandas DataFrame.
     """
     load_dotenv()
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable not set")
-    engine = create_engine(database_url)
-    with engine.connect() as connection:
-        result = connection.execute(text(sql_query))
-        df = pd.DataFrame(result.fetchall(), columns=list(result.keys()))
-    return df
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if database_url is None:
+            raise ValueError("DATABASE_URL environment variable is not set.")
+        engine = create_engine(database_url)
+        with engine.connect() as connection:
+            result = connection.execute(text(sql_query))
+            df = pd.DataFrame(result.fetchall(), columns=list(result.keys()))
+        return df
+    except Exception as e:
+        print(f"Database query failed: {e}")
+        return pd.DataFrame() # Return an empty DataFrame on error
+
 
 if __name__ == "__main__":
     create_tables()

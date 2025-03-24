@@ -27,7 +27,7 @@
         <tbody>
             {% for facture in factures %}
             <tr>
-                <td>{{ facture.id_facture }}</td> 
+                <td><a href="{{ url_for('facture', id_facture=facture.id_facture) }}">{{ facture.id_facture }}</a></td> 
                 <td>{{ facture.date_facturation }}</td>
                 <td>{{ facture.total }}</td>
             </tr>

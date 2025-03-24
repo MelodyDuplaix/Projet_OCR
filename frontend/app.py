@@ -37,6 +37,11 @@ def upload():
     token = session.get("token")
     if not token:
         return redirect(url_for("login"))
+    # check if the token is still valid
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{FASTAPI_URL}/", headers=headers)
+    if response.status_code == 401:
+        return redirect(url_for("logout"))
 
     if request.method == "POST":
         file = request.files["file"]
@@ -50,6 +55,7 @@ def upload():
                 result = response.json()
                 achat = result["data"]["achat"]
                 client = result["data"]["client"]
+                client[0]["birthdate"] = client[0]["birthdate"].split("T")[0]
                 facture = result["data"]["facture"]
                 produit = result["data"]["produit"]
                 filename = file.filename
@@ -87,6 +93,43 @@ def factures():
         return render_template("factures.html", factures=factures)
     except requests.exceptions.RequestException as e:
         return render_template("factures.html", error=str(e))
+    
+@app.route("/factures/<id_facture>")
+def facture(id_facture):
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(f"{FASTAPI_URL}/factures/{id_facture}", headers=headers)
+        if response.status_code == 401:
+            return redirect(url_for("logout"))
+        response.raise_for_status()
+        result = response.json()
+
+        # Process response data
+        facture = result["facture"]
+        facture["date_facturation"] = facture["date_facturation"].split("T")[0]
+        client = result["client"]
+        client["birthdate"] = client["birthdate"].split("T")[0]
+        products = [
+            {
+                "id_produit": p["product"]["id_produit"],
+                "nom": p["product"]["nom"],
+                "prix": p["product"]["prix"],
+                "quantite": p["quantity"],
+            }
+            for p in result["products"]
+        ]
+
+        return render_template(
+            "facture.html",
+            facture=facture,
+            client=client,
+            produit=products,
+        )
+    except requests.exceptions.RequestException as e:
+        return render_template("facture.html", error=str(e))
 
 if __name__ == "__main__":
     app.run(debug=True)

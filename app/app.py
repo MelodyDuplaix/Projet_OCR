@@ -31,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/token")
+@app.post("/token", summary="Login for access token", response_model=Token, tags=["authentication"])
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
@@ -58,17 +58,13 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me/", response_model=User)
+@app.get("/", response_model=User, tags=["authentication"])
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return current_user
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to my FastAPI User Authentication!"}
-
-@app.post("/process")
+@app.post("/process", summary="Process uploaded file", tags=["OCR"])
 async def create_item(
     file: UploadFile = File(...),
     current_user: bool = Depends(get_current_user)  # Using the dependency
@@ -103,7 +99,7 @@ async def create_item(
         add_log(datetime.datetime.now(), file.filename, str(e))
         return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
 
-@app.get("/factures")
+@app.get("/factures", summary="Read all factures", tags=["Database"])
 async def read_all_factures():
     """
     Read all factures.
@@ -113,7 +109,7 @@ async def read_all_factures():
     factures = get_all_factures()
     return factures
 
-@app.get("/factures/{id_facture}")
+@app.get("/factures/{id_facture}", summary="Read facture by id", tags=["Database"])
 async def read_facture(id_facture: str):
     """
     Read facture by id.
@@ -125,7 +121,7 @@ async def read_facture(id_facture: str):
         raise HTTPException(status_code=404, detail="Facture not found")
     return facture_data
 
-@app.get("/clients")
+@app.get("/clients", summary="Read all clients", tags=["Database"])
 async def read_all_clients():
     """
     Read all clients.
@@ -133,7 +129,7 @@ async def read_all_clients():
     clients = get_all_clients()
     return clients
 
-@app.get("/clients/{id_client}")
+@app.get("/clients/{id_client}", summary="Read client by id", tags=["Database"])
 async def read_client(id_client: str):
     """
     Read client by id.
@@ -145,7 +141,7 @@ async def read_client(id_client: str):
         raise HTTPException(status_code=404, detail="Client not found")
     return client_data
 
-@app.get("/achats")
+@app.get("/achats", summary="Read all achats", tags=["Database"])
 async def read_all_achats():
     """
     Read all achats.
@@ -153,7 +149,7 @@ async def read_all_achats():
     achats = get_all_achats()
     return achats
 
-@app.get("/achats/{id_produit}/{id_client}/{id_facture}")
+@app.get("/achats/{id_produit}/{id_client}/{id_facture}", summary="Read achat by id", tags=["Database"])
 async def read_achat(id_produit: str, id_client: str, id_facture: str):
     """
     Read achat by id.
@@ -167,7 +163,7 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
         raise HTTPException(status_code=404, detail="Achat not found")
     return achat
 
-@app.get("/produits")
+@app.get("/produits", summary="Read all produits", tags=["Database"])
 async def read_all_produits():
     """
     Read all produits.
@@ -175,7 +171,7 @@ async def read_all_produits():
     produits = get_all_produits()
     return produits
 
-@app.get("/produits/{id_produit}")
+@app.get("/produits/{id_produit}", summary="Read produit by id", tags=["Database"])
 async def read_produit(id_produit: str):
     """
     Read produit by id.
