@@ -2,9 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 import requests
 import base64
 import os
+import sys
+import dotenv
+dotenv.load_dotenv()
+
 
 app = Flask(__name__)
-app.secret_key = "super secret key"  # Change this in production!
+app.secret_key = os.getenv("SUPER_SECRET_KEY")
 app.static_folder = 'static'
 
 FASTAPI_URL = "http://localhost:8000"  # Update if your FastAPI app is running elsewhere

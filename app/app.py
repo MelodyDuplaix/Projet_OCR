@@ -5,11 +5,11 @@ from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import sys
-import sys
-import os
 import json
 from datetime import timedelta
 from typing import Optional
+
+import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.database import create_tables, add_user, add_data, engine, add_log
 from src.extract_data import extraire_donnees
@@ -20,8 +20,16 @@ from app.auth.models import Token
 from app.helpers.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
 from src.database import get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
 from fastapi.middleware.cors import CORSMiddleware
+from src.clustering import RFMClustering, KmeansClustering
+
 
 app = FastAPI()
+
+rfm_model = RFMClustering()
+rfm_model.classify()
+
+kmeans_model = KmeansClustering()
+kmeans_model.load_model()
 
 app.add_middleware(
     CORSMiddleware,
@@ -182,3 +190,44 @@ async def read_produit(id_produit: str):
     if produit_data is None:
         raise HTTPException(status_code=404, detail="Produit not found")
     return produit_data
+
+@app.get("/clustering/rfm", summary="Get RFM clustering", tags=["Clustering"])
+async def get_rfm_clustering():
+    """
+    Get RFM clustering.
+    """
+    df = rfm_model.df
+    clients = {}
+    for _, client in df.iterrows():
+        clients[client['id_client']] = {
+            "total_depense": client['total_depense'] if not pd.isna(client['total_depense']) else None,
+            "score_depense": client['score_depense'] if not pd.isna(client['score_depense']) else None,
+            "nombre_de_commande": client['nombre_de_commande'] if not pd.isna(client['nombre_de_commande']) else None,
+            "score_frequence": client['score_frequence'] if not pd.isna(client['score_frequence']) else None,
+            "jours_depuis_derniere_facture": client['jours_depuis_derniere_facture'] if not pd.isna(client['jours_depuis_derniere_facture']) else None,
+            "score_recence": client['score_recence'] if not pd.isna(client['score_recence']) else None,
+            "segment": client['segment'] if not pd.isna(client['segment']) else None
+        }
+    clients[client['id_client']] = {k: None if isinstance(v, float) and (v != v) else v for k, v in clients[client['id_client']].items()}
+    return clients
+
+@app.get("/clustering/kmeans", summary="Get Kmeans clustering", tags=["Clustering"])
+async def get_kmeans_clustering():
+    """
+    Get Kmeans clustering.
+    """
+    df = kmeans_model.df
+    clients = {}
+    for _, client in df.iterrows():
+        clients[client['id_client']] = {
+            "total_depense": client['total_depense'] if not pd.isna(client['total_depense']) else None,
+            "score_depense": client['score_depense'] if not pd.isna(client['score_depense']) else None,
+            "nombre_de_commande": client['nombre_de_commande'] if not pd.isna(client['nombre_de_commande']) else None,
+            "score_frequence": client['score_frequence'] if not pd.isna(client['score_frequence']) else None,
+            "jours_depuis_derniere_facture": client['jours_depuis_derniere_facture'] if not pd.isna(client['jours_depuis_derniere_facture']) else None,
+            "score_recence": client['score_recence'] if not pd.isna(client['score_recence']) else None,
+            "age": client['age'] if not pd.isna(client['age']) else None,
+            "cluster": client['cluster'] if not pd.isna(client['cluster']) else None
+        }
+    clients[client['id_client']] = {k: None if isinstance(v, float) and (v != v) else v for k, v in clients[client['id_client']].items()}
+    return clients
