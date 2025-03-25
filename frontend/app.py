@@ -1,3 +1,4 @@
+from urllib import response
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import requests
 import base64
@@ -143,7 +144,29 @@ def rfm():
         else:
             segments[segment] = 1
 
-    return render_template("rfm.html", data=data, segments=segments)
+    return render_template("clustering.html", data=data, segments=segments, type="RFM (Recency, Frequency, Monetary)")
+
+@app.route("/clustering/kmeans")
+def kmeans():
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{FASTAPI_URL}/clustering/kmeans", headers=headers)
+    if response.status_code == 401:
+        return redirect(url_for("logout"))
+    response.raise_for_status()
+    data = response.json()
+    
+    segments = {}
+    for customer in data:
+        segment = data[customer]["cluster"]
+        if segment in segments:
+            segments[segment] += 1
+        else:
+            segments[segment] = 1
+            
+    return render_template("clustering.html", data=data, segments=segments, type="KMeans")
 
 if __name__ == "__main__":
     app.run(debug=True)
