@@ -28,6 +28,9 @@
                           <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/clustering/kmeans">Cluster K-Means</a></li>
                         </ul>
                       </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/metrics' %}active{% endif %}" href="/metrics">Metrics</a>
+                    </li>
                     <li class="nav-item ms-auto">
                         <a class="nav-link" href="/logout">Logout</a>
                     </li>

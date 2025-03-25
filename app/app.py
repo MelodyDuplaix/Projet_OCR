@@ -1,19 +1,16 @@
 import datetime
 import os
-from typing import Annotated
+from typing import Annotated, Any, Dict
 from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 import sys
-import json
 from datetime import timedelta
-from typing import Optional
-
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.database import create_tables, add_user, add_data, engine, add_log
-from src.extract_data import extraire_donnees
-from app.auth import auth
+from src.database import engine, add_log, Log, Facture
+from sqlalchemy.orm import sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
 from app.auth.models import User
 from app.auth.models import Token
@@ -231,3 +228,34 @@ async def get_kmeans_clustering():
         }
     clients[client['id_client']] = {k: None if isinstance(v, float) and (v != v) else v for k, v in clients[client['id_client']].items()}
     return clients
+
+@app.get(
+    "/metrics",
+    summary="API metrics",
+    description="Returns monitoring metrics for the API",
+    tags=["Monitoring"],
+    response_model=Dict[str, Any]
+)
+async def metrics():
+    """
+    Returns monitoring metrics for the API.
+    
+    Includes:
+    - Total requests
+    - Error rate
+    - list of errors
+    """
+    with SessionLocal() as session:
+        total_requests = session.query(Facture.id_facture).outerjoin(
+            Log, Log.fichier == Facture.id_facture
+        ).count()
+        error_rate = session.query(Log).count() / total_requests
+        error_list = [error[0] for error in session.query(Log.erreur).all()]
+        
+    return {
+        "total_requests": total_requests,
+        "error_rate": error_rate,
+        "error_list": error_list
+    }
+        
+

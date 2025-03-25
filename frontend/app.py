@@ -198,5 +198,24 @@ def kmeans():
 
     return render_template("clustering.html", data=data, segments=segments, type="KMeans", cluster_stats=cluster_stats)
 
+
+@app.route("/metrics")
+def metrics():
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{FASTAPI_URL}/metrics", headers=headers)
+    if response.status_code == 401:
+        return redirect(url_for("logout"))
+    response.raise_for_status()
+    data = response.json()
+    total_requests = data["total_requests"]
+    error_rate = data["error_rate"]
+    error_percentage = round(error_rate * 100, 2)
+    error_list = data["error_list"]
+    return render_template("metrics.html", total_requests=total_requests, error_rate=error_percentage, error_list=error_list)
+    
+
 if __name__ == "__main__":
     app.run(debug=True)

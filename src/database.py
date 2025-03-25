@@ -221,6 +221,7 @@ def add_log(time, file, error):
         file (str): The file of the log.
         error (str): The error of the log.
     """
+    file = file.split("-")[0].split("_")[1:].join("-")
     log = Log(time=time, fichier=file, erreur=error)
     with SessionLocal() as session:
         session.add(log)
