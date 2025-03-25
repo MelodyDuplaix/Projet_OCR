@@ -227,7 +227,7 @@ async def get_kmeans_clustering():
             "jours_depuis_derniere_facture": client['jours_depuis_derniere_facture'] if not pd.isna(client['jours_depuis_derniere_facture']) else None,
             "score_recence": client['score_recence'] if not pd.isna(client['score_recence']) else None,
             "age": client['age'] if not pd.isna(client['age']) else None,
-            "cluster": client['cluster'] if not pd.isna(client['cluster']) else None
+            "segment": client['cluster'] if not pd.isna(client['cluster']) else None
         }
     clients[client['id_client']] = {k: None if isinstance(v, float) and (v != v) else v for k, v in clients[client['id_client']].items()}
     return clients

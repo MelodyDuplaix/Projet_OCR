@@ -5,6 +5,7 @@ import base64
 import os
 import sys
 import dotenv
+from traitlets import Bool
 dotenv.load_dotenv()
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from frontend.helpers.data_handler import get_data_for_facture
@@ -124,6 +125,45 @@ def facture(id_facture):
     except requests.exceptions.RequestException as e:
         return render_template("facture.html", error=str(e))
 
+def calculate_segments(data):
+    segments = {}
+    for customer in data:
+        segment = data[customer]["segment"]
+        if segment in segments:
+            segments[segment] += 1
+        else:
+            segments[segment] = 1
+    return segments
+
+def calculate_cluster_stats(data, age):
+    cluster_stats = {}
+    for customer, values in data.items():
+        cluster = values["segment"]
+        if cluster not in cluster_stats:
+            cluster_stats[cluster] = {
+                "total_depense": 0,
+                "nombre_de_commande": 0,
+                "jours_depuis_derniere_facture": 0,
+                "id_client": 0
+            }
+            if age:
+                cluster_stats[cluster]["age"] = 0
+        if age:
+            cluster_stats[cluster]["age"] += values["age"]
+        cluster_stats[cluster]["total_depense"] += values["total_depense"]
+        cluster_stats[cluster]["nombre_de_commande"] += values["nombre_de_commande"]
+        cluster_stats[cluster]["jours_depuis_derniere_facture"] += values["jours_depuis_derniere_facture"]
+        cluster_stats[cluster]["id_client"] += 1
+        
+    for cluster in cluster_stats:
+        cluster_stats[cluster]["total_depense"] /= cluster_stats[cluster]["id_client"]
+        cluster_stats[cluster]["nombre_de_commande"] /= cluster_stats[cluster]["id_client"]
+        cluster_stats[cluster]["jours_depuis_derniere_facture"] /= cluster_stats[cluster]["id_client"]
+        if age:
+            cluster_stats[cluster]["age"] /= cluster_stats[cluster]["id_client"]
+    return cluster_stats
+
+
 @app.route("/clustering/rfm")
 def rfm():
     token = session.get("token")
@@ -136,15 +176,10 @@ def rfm():
     response.raise_for_status()
     data = response.json()
 
-    segments = {}
-    for customer in data:
-        segment = data[customer]["segment"]
-        if segment in segments:
-            segments[segment] += 1
-        else:
-            segments[segment] = 1
+    segments = calculate_segments(data)
+    cluster_stats = calculate_cluster_stats(data, False)
 
-    return render_template("clustering.html", data=data, segments=segments, type="RFM (Recency, Frequency, Monetary)")
+    return render_template("clustering.html", data=data, segments=segments, type="RFM (Recency, Frequency, Monetary)", cluster_stats=cluster_stats)
 
 @app.route("/clustering/kmeans")
 def kmeans():
@@ -157,16 +192,11 @@ def kmeans():
         return redirect(url_for("logout"))
     response.raise_for_status()
     data = response.json()
-    
-    segments = {}
-    for customer in data:
-        segment = data[customer]["cluster"]
-        if segment in segments:
-            segments[segment] += 1
-        else:
-            segments[segment] = 1
-            
-    return render_template("clustering.html", data=data, segments=segments, type="KMeans")
+
+    segments = calculate_segments(data)
+    cluster_stats = calculate_cluster_stats(data, True)
+
+    return render_template("clustering.html", data=data, segments=segments, type="KMeans", cluster_stats=cluster_stats)
 
 if __name__ == "__main__":
     app.run(debug=True)
