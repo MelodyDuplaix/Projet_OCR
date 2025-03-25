@@ -5,7 +5,8 @@ import os
 import sys
 import dotenv
 dotenv.load_dotenv()
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from frontend.helpers.data_handler import get_data_for_facture
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SUPER_SECRET_KEY")
@@ -98,6 +99,7 @@ def factures():
     except requests.exceptions.RequestException as e:
         return render_template("factures.html", error=str(e))
     
+
 @app.route("/factures/<id_facture>")
 def facture(id_facture):
     token = session.get("token")
@@ -105,26 +107,12 @@ def facture(id_facture):
         return redirect(url_for("login"))
     headers = {"Authorization": f"Bearer {token}"}
     try:
-        response = requests.get(f"{FASTAPI_URL}/factures/{id_facture}", headers=headers)
-        if response.status_code == 401:
-            return redirect(url_for("logout"))
-        response.raise_for_status()
-        result = response.json()
-
-        # Process response data
-        facture = result["facture"]
-        facture["date_facturation"] = facture["date_facturation"].split("T")[0]
-        client = result["client"]
-        client["birthdate"] = client["birthdate"].split("T")[0]
-        products = [
-            {
-                "id_produit": p["product"]["id_produit"],
-                "nom": p["product"]["nom"],
-                "prix": p["product"]["prix"],
-                "quantite": p["quantity"],
-            }
-            for p in result["products"]
-        ]
+        try:
+            facture, client, products = get_data_for_facture(headers, id_facture, FASTAPI_URL)
+        except Exception as e:
+            if str(e) == "Unauthorized":
+                return redirect(url_for("logout"))
+            return render_template("facture.html", error=str(e))
 
         return render_template(
             "facture.html",
@@ -134,6 +122,28 @@ def facture(id_facture):
         )
     except requests.exceptions.RequestException as e:
         return render_template("facture.html", error=str(e))
+
+@app.route("/clustering/rfm")
+def rfm():
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{FASTAPI_URL}/clustering/rfm", headers=headers)
+    if response.status_code == 401:
+        return redirect(url_for("logout"))
+    response.raise_for_status()
+    data = response.json()
+
+    segments = {}
+    for customer in data:
+        segment = data[customer]["segment"]
+        if segment in segments:
+            segments[segment] += 1
+        else:
+            segments[segment] = 1
+
+    return render_template("rfm.html", data=data, segments=segments)
 
 if __name__ == "__main__":
     app.run(debug=True)

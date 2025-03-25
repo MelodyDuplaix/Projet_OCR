@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Factures{% endblock %}
+
+{% block content %}
+    <h1>Clusters</h1>
+    <div class="container">
+        <div style="width: 350px; height: 350px; margin: 0 auto; display: flex; justify-content: center;">
+            <canvas id="pieChart"></canvas>
+        </div>               
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Total Depense</th>
+                    <th>Score Depense</th>
+                    <th>Nombre de Commande</th>
+                    <th>Score Frequence</th>
+                    <th>Jours Depuis Derniere Facture</th>
+                    <th>Score Recence</th>
+                    <th>Segment</th>
+                </tr>
+            </thead>
+            <tbody id="customerTableBody">
+                {% for customer, values in data.items() %}
+                    <tr>
+                        <td>{{ customer }}</td>
+                        <td>{{ values.total_depense }}</td>
+                        <td>{{ values.score_depense }}</td>
+                        <td>{{ values.nombre_de_commande }}</td>
+                        <td>{{ values.score_frequence }}</td>
+                        <td>{{ values.jours_depuis_derniere_facture }}</td>
+                        <td>{{ values.score_recence }}</td>
+                        <td>{{ values.segment }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var segments = {{ segments|tojson }};
+        const labels = Object.keys(segments);
+        const values = Object.values(segments);
+
+        const pieChartCanvas = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(pieChartCanvas, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                onClick: function(event, elements) {
+                    if (elements.length > 0) {
+                        var segmentIndex = elements[0].index;
+                        var segmentName = labels[segmentIndex];
+                        updateCustomerTable(segmentName, {{ data|tojson }});
+                    }
+                }
+            }
+        });
+
+        function updateCustomerTable(segment, data) {
+            var tableBody = document.getElementById('customerTableBody');
+            tableBody.innerHTML = '';
+
+            for (var customerId in data) {
+                var customer = data[customerId];
+                if (customer.segment == segment) {
+                    var row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${customerId}</td>
+                        <td>${customer.total_depense}</td>
+                        <td>${customer.score_depense}</td>
+                        <td>${customer.nombre_de_commande}</td>
+                        <td>${customer.score_frequence}</td>
+                        <td>${customer.jours_depuis_derniere_facture}</td>
+                        <td>${customer.score_recence}</td>
+                        <td>${customer.segment}</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
+        }
+    </script>
+{% endblock %}
