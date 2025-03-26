@@ -205,7 +205,7 @@ def metrics():
     if not token:
         return redirect(url_for("login"))
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{FASTAPI_URL}/metrics", headers=headers)
+    response = requests.get(f"{FASTAPI_URL}/metrics/OCR", headers=headers)
     if response.status_code == 401:
         return redirect(url_for("logout"))
     response.raise_for_status()
@@ -213,9 +213,27 @@ def metrics():
     total_requests = data["total_requests"]
     error_rate = data["error_rate"]
     error_percentage = round(error_rate * 100, 2)
+    print(data)
     error_list = data["error_list"]
     return render_template("metrics.html", total_requests=total_requests, error_rate=error_percentage, error_list=error_list)
     
+
+@app.route("/dashboard")
+def dashboard():
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(f"{FASTAPI_URL}/metrics", headers=headers)
+        if response.status_code == 401:
+            return redirect(url_for("logout"))
+        response.raise_for_status()
+        metrics = response.json()
+        return render_template("dashboard.html", metrics=metrics)
+    except requests.exceptions.RequestException as e:
+        return render_template("dashboard.html", error=str(e))
+
 
 if __name__ == "__main__":
     app.run(debug=True)

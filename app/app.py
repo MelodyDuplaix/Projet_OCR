@@ -59,14 +59,12 @@ async def monitoring_middleware(request: Request, call_next):
             response_body += chunk
         async def body_iterator():
             yield response_body
-        response.body_iterator = body_iterator()  # Reset the body iterator
-
-        # Decode the response body to check for "status": "error"
+        response.body_iterator = body_iterator()
+        
         try:
             response_data = response_body.decode("utf-8")
             json_data = json.loads(response_data)
-            print(json_data)
-            if json_data.get("status") == "error":
+            if json_data.get("status") == "error" and json_data.get("erreur") != "" and json_data.get("erreur") is not None:
                 monitor.record_request(
                     method=method,
                     path=path,
@@ -76,7 +74,7 @@ async def monitoring_middleware(request: Request, call_next):
                 )
                 return JSONResponse(content=json_data, status_code=response.status_code)
         except Exception:
-            pass  # If decoding fails, proceed as normal
+            pass
 
         # Record the request
         monitor.record_request(
@@ -87,7 +85,6 @@ async def monitoring_middleware(request: Request, call_next):
         )
         return response
     except Exception as e:
-        # Handle unexpected exceptions
         duration = time.time() - start_time
         monitor.record_request(
             method=method,

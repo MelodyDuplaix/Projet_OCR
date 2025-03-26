@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
 from app.auth.models import Token, User
 from app.helpers.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
-from src.database import get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
+from src.database import Facture, Log, SessionLocal, get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
 from src.clustering import RFMClustering, KmeansClustering
 from app.helpers.monitoring import monitor
 import pandas as pd
@@ -48,7 +48,7 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     try:
-        return {"status": "success", "erreur": None, "data": current_user}
+        return current_user
     except Exception as e:
         return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
 
@@ -81,7 +81,7 @@ async def create_item(
 async def read_all_factures():
     try:
         factures = get_all_factures()
-        return {"status": "success", "erreur": None, "data": factures}
+        return factures
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -91,7 +91,7 @@ async def read_facture(id_facture: str):
         facture_data = get_facture_by_id(id_facture)
         if facture_data is None:
             raise HTTPException(status_code=404, detail="Facture not found")
-        return {"status": "success", "erreur": None, "data": facture_data}
+        return facture_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -99,7 +99,7 @@ async def read_facture(id_facture: str):
 async def read_all_clients():
     try:
         clients = get_all_clients()
-        return {"status": "success", "erreur": None, "data": clients}
+        return clients
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -109,7 +109,7 @@ async def read_client(id_client: str):
         client_data = get_client_by_id(id_client)
         if client_data is None:
             raise HTTPException(status_code=404, detail="Client not found")
-        return {"status": "success", "erreur": None, "data": client_data}
+        return client_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -117,7 +117,7 @@ async def read_client(id_client: str):
 async def read_all_achats():
     try:
         achats = get_all_achats()
-        return {"status": "success", "erreur": None, "data": achats}
+        return achats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -127,7 +127,7 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
         achat = get_achat_by_id(id_produit, id_client, id_facture)
         if achat is None:
             raise HTTPException(status_code=404, detail="Achat not found")
-        return {"status": "success", "erreur": None, "data": achat}
+        return achat
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -135,7 +135,7 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
 async def read_all_produits():
     try:
         produits = get_all_produits()
-        return {"status": "success", "erreur": None, "data": produits}
+        return produits
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -145,7 +145,7 @@ async def read_produit(id_produit: str):
         produit_data = get_produit_by_id(id_produit)
         if produit_data is None:
             raise HTTPException(status_code=404, detail="Produit not found")
-        return {"status": "success", "erreur": None, "data": produit_data}
+        return produit_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -164,7 +164,7 @@ async def get_rfm_clustering():
                 "score_recence": client['score_recence'] if not pd.isna(client['score_recence']) else None,
                 "segment": client['segment'] if not pd.isna(client['segment']) else None
             }
-        return {"status": "success", "erreur": None, "data": clients}
+        return clients
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -184,7 +184,7 @@ async def get_kmeans_clustering():
                 "age": client['age'] if not pd.isna(client['age']) else None,
                 "segment": client['cluster'] if not pd.isna(client['cluster']) else None
             }
-        return {"status": "success", "erreur": None, "data": clients}
+        return clients
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -198,8 +198,18 @@ async def metrics_ocr():
     - List of errors
     """
     try:
-        stats = monitor.get_statistics()
-        return {"status": "success", "erreur": None, "data": stats}
+        with SessionLocal() as session:
+            total_requests = session.query(Facture.id_facture).outerjoin(
+                Log, Log.fichier == Facture.id_facture
+            ).count()
+            error_rate = session.query(Log).count() / total_requests
+            error_list = [error[0] for error in session.query(Log.erreur).all()]
+            
+        return {
+            "total_requests": total_requests,
+            "error_rate": error_rate,
+            "error_list": error_list
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

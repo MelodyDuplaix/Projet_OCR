@@ -20,7 +20,7 @@
                         <a class="nav-link {% if request.path == '/factures' %}active{% endif %}" href="/factures">Factures</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.path.startswith('/clustering')  %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                           Clustering
                         </a>
                         <ul class="dropdown-menu">
@@ -28,8 +28,14 @@
                           <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/clustering/kmeans">Cluster K-Means</a></li>
                         </ul>
                       </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/metrics' %}active{% endif %}" href="/metrics">Metrics</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.path == '/metrics' or request.path == '/dashboard' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Monitoring
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/metrics">OCR Metrics</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/dashboard">API Dashboard</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item ms-auto">
                         <a class="nav-link" href="/logout">Logout</a>
