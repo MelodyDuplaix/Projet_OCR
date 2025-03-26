@@ -26,6 +26,7 @@
         </div>
 
         <div class="row mt-4">
+            <h2 class="text-center mb-4">Errors Distribution</h2>
             <div class="col-md-6 offset-md-3 d-flex justify-content-center">
                 <canvas id="errorChart" style="max-width: 400px; max-height: 400px;"></canvas>
             </div>
@@ -39,12 +40,10 @@
         const errorCounts = {};
         if (errorList && Array.isArray(errorList)) {
             errorList.forEach(error => {
-                if (typeof error === 'string') {
-                    error.split(',').forEach(e => {
-                        const trimmedError = e.trim();
-                        errorCounts[trimmedError] = (errorCounts[trimmedError] || 0) + 1;
-                    });
-                }
+            if (typeof error === 'string') {
+                const trimmedError = error.trim();
+                errorCounts[trimmedError] = (errorCounts[trimmedError] || 0) + 1;
+            }
             });
         }
 
