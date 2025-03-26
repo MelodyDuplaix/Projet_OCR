@@ -24,8 +24,8 @@
                           Clustering
                         </a>
                         <ul class="dropdown-menu">
-                          <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/clustering/rfm">Cluster RFM</a></li>
-                          <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/clustering/kmeans">Cluster K-Means</a></li>
+                          <li><a class="dropdown-item {% if request.path == '/clustering/rfm' %}active{% endif %}" href="/clustering/rfm">Cluster RFM</a></li>
+                          <li><a class="dropdown-item {% if request.path == '/clustering/kmeans' %}active{% endif %}" href="/clustering/kmeans">Cluster K-Means</a></li>
                         </ul>
                       </li>
                     <li class="nav-item dropdown">
@@ -33,8 +33,8 @@
                             Monitoring
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/metrics">OCR Metrics</a></li>
-                            <li><a class="dropdown-item {% if request.path == '/upload' %}active{% endif %}" href="/dashboard">API Dashboard</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/metrics' %}active{% endif %}" href="/metrics">OCR Metrics</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/dashboard' %}active{% endif %}" href="/dashboard">API Dashboard</a></li>
                         </ul>
                     </li>
                     <li class="nav-item ms-auto">
