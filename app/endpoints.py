@@ -28,7 +28,7 @@ kmeans_model.load_model()
     summary="Login for access token",
     description="Endpoint for user login and access token retrieval.",
     response_model=Token,
-    tags=["authentication"],
+    tags=["Authentication"],
 )
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
@@ -57,7 +57,7 @@ async def login_for_access_token(
     summary="Read current user",
     description="Endpoint to retrieve the current active user's information.",
     response_model=User,
-    tags=["authentication"],
+    tags=["Authentication"],
 )
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
@@ -121,6 +121,11 @@ async def read_all_factures():
     summary="Read facture by id",
     description="Endpoint to retrieve a facture by its ID from the database.",
     tags=["Database"],
+    responses={
+        200: {"description": "Facture information retrieved successfully"},
+        404: {"description": "Facture not found"},
+        500: {"description": "Internal server error"}
+    }
 )
 async def read_facture(id_facture: str):
     """
@@ -155,6 +160,11 @@ async def read_all_clients():
     summary="Read client by id",
     description="Endpoint to retrieve a client by their ID from the database.",
     tags=["Database"],
+    responses={
+        200: {"description": "Client information retrieved successfully"},
+        404: {"description": "Client not found"},
+        500: {"description": "Internal server error"}
+    }
 )
 async def read_client(id_client: str):
     """
@@ -190,6 +200,11 @@ async def read_all_achats():
     summary="Read achat by id",
     description="Endpoint to retrieve an achat by its composite ID from the database.",
     tags=["Database"],
+    responses={
+        200: {"description": "Achat information retrieved successfully"},
+        404: {"description": "Achat not found"},
+        500: {"description": "Internal server error"}
+    }
 )
 async def read_achat(id_produit: str, id_client: str, id_facture: str):
     """
@@ -222,6 +237,11 @@ async def read_all_produits():
     summary="Read produit by id",
     description="Endpoint to retrieve a produit by its ID from the database.",
     tags=["Database"],
+    responses={
+        200: {"description": "Produit information retrieved successfully"},
+        404: {"description": "Produit not found"},
+        500: {"description": "Internal server error"}
+    }
 )
 async def read_produit(id_produit: str):
     try:

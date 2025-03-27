@@ -9,7 +9,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 import sys
 from datetime import timedelta
 import pandas as pd
+
+# Adjust sys.path if running as a standalone script
+if __name__ == "__main__" and __package__ is None:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
 from src.database import engine, add_log, Log, Facture
 from sqlalchemy.orm import sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -24,7 +30,35 @@ from app.helpers.monitoring import monitor
 from app.endpoints import router as api_router
 
  
-app = FastAPI()
+app = FastAPI(
+    title=config.API_TITLE,
+    description=config.API_DESCRIPTION,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_tags=[
+        {
+            "name": "Authentication",
+            "description": "Endpoints for user authentication",
+        },
+        {
+            "name": "OCR",
+            "description": "Endpoints for OCR processing",
+        },
+        {
+            "name": "Database",
+            "description": "Endpoints for database operations",
+        },
+        {
+            "name": "Clustering",
+            "description": "Endpoints for clustering operations",
+        },
+        {
+            "name": "Monitoring",
+            "description": "Endpoints for monitoring API metrics",
+        },
+    ]
+)
+
 
 rfm_model = RFMClustering()
 rfm_model.classify()
@@ -99,3 +133,12 @@ async def monitoring_middleware(request: Request, call_next):
         )
 
 
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.app:app", 
+        host=config.HOST, 
+        port=config.PORT, 
+        reload=config.RELOAD
+    )
