@@ -23,10 +23,19 @@ rfm_model.classify()
 kmeans_model = KmeansClustering()
 kmeans_model.load_model()
 
-@router.post("/token", summary="Login for access token", response_model=Token, tags=["authentication"])
+@router.post(
+    "/token",
+    summary="Login for access token",
+    description="Endpoint for user login and access token retrieval.",
+    response_model=Token,
+    tags=["authentication"],
+)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
+    """
+    Login endpoint to retrieve access token for authentication.
+    """
     try:
         user = authenticate_user(form_data.username, form_data.password)
         if not user:
@@ -43,16 +52,30 @@ async def login_for_access_token(
     except Exception as e:
         return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
 
-@router.get("/", response_model=User, tags=["authentication"])
+@router.get(
+    "/",
+    summary="Read current user",
+    description="Endpoint to retrieve the current active user's information.",
+    response_model=User,
+    tags=["authentication"],
+)
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
+    """
+    Retrieve the current active user.
+    """
     try:
         return current_user
     except Exception as e:
         return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
 
-@router.post("/process", summary="Process uploaded file", tags=["OCR"])
+@router.post(
+    "/process",
+    summary="Process uploaded file",
+    description="Endpoint to process the uploaded file, extract data, and add it to the database.",
+    tags=["OCR"],
+)
 async def create_item(
     file: UploadFile = File(...),
     current_user: bool = Depends(get_current_user)
@@ -75,18 +98,34 @@ async def create_item(
         return {"status": "success", "erreur": None, "data": data}
     except Exception as e:
         # Return a JSON response for unexpected errors
-        return {"status": "error", "erreur": str(e), "data": None}
+        return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
 
-@router.get("/factures", summary="Read all factures", tags=["Database"])
+@router.get(
+    "/factures",
+    summary="Read all factures",
+    description="Endpoint to retrieve all factures from the database.",
+    tags=["Database"],
+)
 async def read_all_factures():
+    """
+    Retrieve all factures.
+    """
     try:
         factures = get_all_factures()
         return factures
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/factures/{id_facture}", summary="Read facture by id", tags=["Database"])
+@router.get(
+    "/factures/{id_facture}",
+    summary="Read facture by id",
+    description="Endpoint to retrieve a facture by its ID from the database.",
+    tags=["Database"],
+)
 async def read_facture(id_facture: str):
+    """
+    Retrieve a facture by its ID.
+    """
     try:
         facture_data = get_facture_by_id(id_facture)
         if facture_data is None:
@@ -95,16 +134,32 @@ async def read_facture(id_facture: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/clients", summary="Read all clients", tags=["Database"])
+@router.get(
+    "/clients",
+    summary="Read all clients",
+    description="Endpoint to retrieve all clients from the database.",
+    tags=["Database"],
+)
 async def read_all_clients():
+    """
+    Retrieve all clients.
+    """
     try:
         clients = get_all_clients()
         return clients
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/clients/{id_client}", summary="Read client by id", tags=["Database"])
+@router.get(
+    "/clients/{id_client}",
+    summary="Read client by id",
+    description="Endpoint to retrieve a client by their ID from the database.",
+    tags=["Database"],
+)
 async def read_client(id_client: str):
+    """
+    Retrieve a client by their ID.
+    """
     try:
         client_data = get_client_by_id(id_client)
         if client_data is None:
@@ -113,16 +168,33 @@ async def read_client(id_client: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/achats", summary="Read all achats", tags=["Database"])
+@router.get(
+    "/achats",
+    summary="Read all achats",
+    description="Endpoint to retrieve all achats from the database.",
+    response_model=List[Dict[str, Any]],
+    tags=["Database"],
+)
 async def read_all_achats():
+    """
+    Retrieve all achats.
+    """
     try:
         achats = get_all_achats()
         return achats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/achats/{id_produit}/{id_client}/{id_facture}", summary="Read achat by id", tags=["Database"])
+@router.get(
+    "/achats/{id_produit}/{id_client}/{id_facture}",
+    summary="Read achat by id",
+    description="Endpoint to retrieve an achat by its composite ID from the database.",
+    tags=["Database"],
+)
 async def read_achat(id_produit: str, id_client: str, id_facture: str):
+    """
+    Retrieve an achat by its composite ID.
+    """
     try:
         achat = get_achat_by_id(id_produit, id_client, id_facture)
         if achat is None:
@@ -131,7 +203,13 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/produits", summary="Read all produits", tags=["Database"])
+@router.get(
+    "/produits",
+    summary="Read all produits",
+    description="Endpoint to retrieve all produits from the database.",
+    response_model=List[Dict[str, Any]],
+    tags=["Database"],
+)
 async def read_all_produits():
     try:
         produits = get_all_produits()
@@ -139,7 +217,12 @@ async def read_all_produits():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/produits/{id_produit}", summary="Read produit by id", tags=["Database"])
+@router.get(
+    "/produits/{id_produit}",
+    summary="Read produit by id",
+    description="Endpoint to retrieve a produit by its ID from the database.",
+    tags=["Database"],
+)
 async def read_produit(id_produit: str):
     try:
         produit_data = get_produit_by_id(id_produit)
@@ -149,7 +232,13 @@ async def read_produit(id_produit: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/clustering/rfm", summary="Get RFM clustering", tags=["Clustering"])
+@router.get(
+    "/clustering/rfm",
+    summary="Get RFM clustering",
+    description="Endpoint to retrieve RFM clustering data.",
+    response_model=Dict[str, Any],
+    tags=["Clustering"],
+)
 async def get_rfm_clustering():
     try:
         df = rfm_model.df
@@ -168,7 +257,13 @@ async def get_rfm_clustering():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/clustering/kmeans", summary="Get Kmeans clustering", tags=["Clustering"])
+@router.get(
+    "/clustering/kmeans",
+    summary="Get Kmeans clustering",
+    description="Endpoint to retrieve Kmeans clustering data.",
+    response_model=Dict[str, Any],
+    tags=["Clustering"],
+)
 async def get_kmeans_clustering():
     try:
         df = kmeans_model.df
@@ -188,7 +283,13 @@ async def get_kmeans_clustering():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/metrics/OCR", summary="API metrics", tags=["Monitoring"])
+@router.get(
+    "/metrics/OCR",
+    summary="API metrics",
+    description="Endpoint to retrieve API metrics related to OCR processing.",
+    response_model=Dict[str, Any],
+    tags=["Monitoring"],
+)
 async def metrics_ocr():
     """
     Returns monitoring metrics for the API.
@@ -216,9 +317,9 @@ async def metrics_ocr():
 @router.get(
     "/metrics",
     summary="API metrics",
-    description="Returns monitoring metrics for the API",
+    description="Endpoint to retrieve general API metrics.",
+    response_model=Dict[str, Any],
     tags=["Monitoring"],
-    response_model=Dict[str, Any]
 )
 async def metrics():
     """
@@ -235,9 +336,9 @@ async def metrics():
 @router.get(
     "/metrics/requests",
     summary="Recent requests",
-    description="Returns information about recent API requests",
+    description="Endpoint to retrieve information about recent API requests.",
+    response_model=List[Dict[str, Any]],
     tags=["Monitoring"],
-    response_model=List[Dict[str, Any]]
 )
 async def recent_requests(limit: int = Query(10, ge=1, le=100)):
     """Returns information about the most recent API requests"""
@@ -246,7 +347,7 @@ async def recent_requests(limit: int = Query(10, ge=1, le=100)):
 @router.get(
     "/metrics/errors",
     summary="Recent errors",
-    description="Returns information about recent API errors",
+    description="Endpoint to retrieve information about recent API errors.",
     tags=["Monitoring"],
     response_model=List[Dict[str, Any]]
 )

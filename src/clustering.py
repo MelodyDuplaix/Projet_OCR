@@ -80,6 +80,13 @@ class KmeansClustering():
 
 
 if __name__ == "__main__":
+    kmean = KmeansClustering()
+    df = kmean.classify()
+    kmean.save_model()
+    print("model saved")
+    suite = input("Enter yes to continue with the tests")
+    if suite != "yes":
+        exit()
     rfm = RFMClustering()
     df = rfm.classify()
     print(df)
