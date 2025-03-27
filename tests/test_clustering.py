@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from src import clustering
-from src.clustering import RFMClustering, KmeansClustering
+from app.app.utils import clustering
+from app.app.utils.clustering import RFMClustering, KmeansClustering
 
 def test_rfm_clustering_classify(mocker):
     # Mock the dependencies

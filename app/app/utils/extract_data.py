@@ -281,7 +281,7 @@ def extraire_donnees(file):
 
 
 if __name__ == "__main__":
-    from src.database import add_data
+    from app.app.utils.database import add_data
     load_dotenv()
     blob_keys = os.getenv("AZURE_BLOB_KEYS")
     all_files = get_all_files(blob_keys)

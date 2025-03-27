@@ -5,14 +5,14 @@ import pickle
 from sklearn.cluster import KMeans
 from sklearn.discriminant_analysis import StandardScaler
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.database import Facture, Achat, Produit, Client, Log, engine
+from app.app.utils.database import Facture, Achat, Produit, Client, Log, engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey, func, cast, Integer
 import os
 import pandas as pd
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 import pandas as pd
-from src.analyses import get_montant_score, get_frequence_score, get_recence_score, segment_customer, get_age
+from app.app.utils.analyses import get_montant_score, get_frequence_score, get_recence_score, segment_customer, get_age
 
 class RFMClustering():
     
@@ -70,11 +70,11 @@ class KmeansClustering():
         return category
     
     def save_model(self):
-        with open('models/kmean_model.pkl', 'wb') as f:
+        with open('app/app/models/kmean_model.pkl', 'wb') as f:
             pickle.dump((self.kmean_model, self.scaler, self.df), f)
 
     def load_model(self):
-        with open('models/kmean_model.pkl', 'rb') as f:
+        with open('app/app/models/kmean_model.pkl', 'rb') as f:
             self.kmean_model, self.scaler, self.df = pickle.load(f)
 
 

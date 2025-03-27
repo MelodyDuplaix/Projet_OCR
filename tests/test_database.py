@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from src.database import (
+from app.app.utils.database import (
     Base,
     add_client,
     add_data,
@@ -18,7 +18,7 @@ from src.database import (
     add_purchase,
     execute_query,
 )
-from src.extract_data import extraire_donnees, extract_data_raw
+from app.app.utils.extract_data import extraire_donnees, extract_data_raw
 from dotenv import load_dotenv
 
 load_dotenv()

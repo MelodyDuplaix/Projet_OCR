@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
-from app.app import app
+from app.app import main
 import os
 from fastapi import status
 
-client = TestClient(app)
+client = TestClient(main)
 
 def test_process():
     token = client.post(

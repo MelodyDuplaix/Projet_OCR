@@ -1,11 +1,8 @@
-from urllib import response
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import requests
-import base64
 import os
 import sys
 import dotenv
-from traitlets import Bool
 dotenv.load_dotenv()
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from frontend.helpers.data_handler import get_data_for_facture
@@ -14,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SUPER_SECRET_KEY")
 app.static_folder = 'static'
 
-FASTAPI_URL = "http://localhost:8000"  # Update if your FastAPI app is running elsewhere
+FASTAPI_URL = "http://localhost:8000"
 
 # Serve static files from the 'temp' directory
 temp_dir = os.path.join(app.root_path, '..', 'temp')

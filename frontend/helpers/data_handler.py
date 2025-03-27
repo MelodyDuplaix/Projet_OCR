@@ -1,6 +1,5 @@
 import requests
 
-
 def get_data_for_facture(headers, id_facture, FASTAPI_URL):
     response = requests.get(f"{FASTAPI_URL}/factures/{id_facture}", headers=headers)
     if response.status_code == 401:

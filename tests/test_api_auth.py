@@ -1,9 +1,7 @@
 import pytest
-from app.auth import auth
-from src.database import User
+from app.app.auth import auth
+from app.app.utils.database import User
 from datetime import timedelta
-# Mock the database and dependencies for testing get_user, authenticate_user, get_current_user, and get_current_active_user
-import asyncio
 from fastapi import HTTPException, status
 import jwt
 

@@ -1,5 +1,5 @@
 import pytest
-from app.auth.models import UserInDB
+from app.app.auth.models import UserInDB
 
 def test_user_creation():
     user = UserInDB(username="testuser", hashed_password="hashed_password")

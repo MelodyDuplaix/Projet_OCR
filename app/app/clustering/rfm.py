@@ -1,9 +1,9 @@
 from sqlalchemy import func, cast, Integer
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
-from src.database import Facture, Achat, Produit, Client, Log, engine
+from app.app.utils.database import Facture, Achat, Client, engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey, func, cast, Integer
+from sqlalchemy import func, cast, Integer
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 from datetime import datetime
 import pandas as pd
@@ -73,23 +73,6 @@ def get_recence_score():
     )
     df_recence.sort_values("score_recence")
     return df_recence
-
-def get_age():
-    with SessionLocal() as session:
-        query = (
-            session.query(
-                Client.id_client,
-                Client.birthdate
-            )
-        )
-        result = query.all()
-        df_age = pd.DataFrame(result, columns=['id_client', 'birthdate'])
-
-    now = datetime.now()
-    df_age['age'] = df_age['birthdate'].apply(lambda x: now.year - x.year - ((now.month, now.day) < (x.month, x.day)))
-
-    df_age = df_age.drop('birthdate', axis=1)
-    return df_age
 
 def segment_customer(row):
     recency = row['score_recence']

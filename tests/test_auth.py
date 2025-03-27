@@ -1,5 +1,5 @@
 import pytest
-from app.auth import auth
+from app.app.auth import auth
 
 def test_get_password_hash():
     password = "test_password"

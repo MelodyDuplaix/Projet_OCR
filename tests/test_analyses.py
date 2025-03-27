@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
-from src import analyses
-from src.analyses import segment_customer
+from app.app.utils import analyses
+from app.app.utils.analyses import segment_customer
 
 def test_get_age(mocker):
     # Mock the database session and query

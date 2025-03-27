@@ -4,16 +4,15 @@ from typing import Annotated, Dict, Any, List
 from datetime import timedelta
 
 from fastapi.security import OAuth2PasswordRequestForm
-from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
-from app.auth.models import Token, User
-from app.helpers.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
-from src.database import Facture, Log, SessionLocal, get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
-from src.clustering import RFMClustering, KmeansClustering
-from app.helpers.monitoring import monitor
+from app.app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
+from app.app.auth.models import Token, User
+from app.app.utils.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
+from app.app.utils.database import Facture, Log, SessionLocal, get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
+from app.app.utils.clustering import RFMClustering, KmeansClustering
+from app.app.utils.monitoring import monitor
 import pandas as pd
 from sqlalchemy import create_engine
-from src.database import engine
-import datetime
+from app.app.utils.database import engine
 
 router = APIRouter()
 

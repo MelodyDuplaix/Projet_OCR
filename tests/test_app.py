@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.app import app
+from app.app import main
 
-client = TestClient(app)
+client = TestClient(main)
 
 def test_upload_no_token():
     response = client.post("/upload")
