@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from app.auth.models import TokenData, User, UserInDB
+from app.app.auth.models import TokenData, User, UserInDB
 from fastapi import Depends
 from app.app.utils.database import SessionLocal, User as DBUser
 import os

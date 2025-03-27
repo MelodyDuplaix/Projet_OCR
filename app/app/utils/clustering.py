@@ -70,11 +70,11 @@ class KmeansClustering():
         return category
     
     def save_model(self):
-        with open('app/app/models/kmean_model.pkl', 'wb') as f:
+        with open('app/models/kmean_model.pkl', 'wb') as f:
             pickle.dump((self.kmean_model, self.scaler, self.df), f)
 
     def load_model(self):
-        with open('app/app/models/kmean_model.pkl', 'rb') as f:
+        with open('app/models/kmean_model.pkl', 'rb') as f:
             self.kmean_model, self.scaler, self.df = pickle.load(f)
 
 

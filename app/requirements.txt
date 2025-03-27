@@ -1,0 +1,32 @@
+# Bibliothèques de base
+pandas==2.1.3
+dotenv
+
+# récupération des fichiers
+requests
+beautifulsoup4
+lxml
+pytesseract
+pdf2image
+
+# ocr
+opencv-python
+dateparser
+
+# database
+sqlalchemy
+psycopg2-binary
+
+# analyses
+matplotlib
+plotly
+nbformat
+scikit-learn
+
+# application
+fastapi[standard]
+pydantic
+passlib[bpcrypt]
+jose
+pyjwt
+bcrypt

@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SUPER_SECRET_KEY")
 app.static_folder = 'static'
 
-FASTAPI_URL = "http://localhost:8000"
+FASTAPI_URL = os.getenv("FASTAPI_URL")
 
 # Serve static files from the 'temp' directory
 temp_dir = os.path.join(app.root_path, '..', 'temp')
@@ -50,9 +50,19 @@ def upload():
     if request.method == "POST":
         file = request.files["file"]
         if file:
+            # Ensure the temp directory exists
+            temp_dir = os.path.join(app.root_path, '.', 'temp')
+            os.makedirs(temp_dir, exist_ok=True)
+
+            # Save the file to the temp directory
+            file_path = os.path.join(temp_dir, file.filename)
+            file.save(file_path)
+
             headers = {"Authorization": f"Bearer {token}"}
             try:
-                response = requests.post(f"{FASTAPI_URL}/process", files={"file": (file.filename, file.stream)}, headers=headers)
+                # Send the file to the API
+                with open(file_path, "rb") as f:
+                    response = requests.post(f"{FASTAPI_URL}/process", files={"file": (file.filename, f)}, headers=headers)
                 if response.status_code == 401:
                     return redirect(url_for("logout"))
                 response.raise_for_status()

@@ -5,7 +5,7 @@ from dotenv import load_dotenv # type: ignore
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.get_all_files import get_all_files
+from app.app.utils.get_all_files import get_all_files
 from dateparser import parse
 import cv2
 import pytesseract
