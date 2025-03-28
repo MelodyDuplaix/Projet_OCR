@@ -18,6 +18,8 @@ services:
     env_file: 
       - .env  # Charger les variables d'environnement depuis le fichier .env
     environment:
-      - FASTAPI_URL=http://api:8000  # Variable spécifique au frontend
+      - DOCKER_ENV=true
+    volumes:
+      - ./temp:/frontend/temp
     depends_on:
       - api

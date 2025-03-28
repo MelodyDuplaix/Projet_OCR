@@ -46,6 +46,25 @@ class KmeansClustering():
                                 max_iter=300, 
                                 n_init=10, 
                                 random_state=0) 
+        
+    def is_running_in_docker(self):
+        """
+        Detect if the code is running inside a Docker container.
+        """
+        try:
+            with open('/proc/self/cgroup', 'r') as f:
+                return any('docker' in line for line in f)
+        except FileNotFoundError:
+            return False    
+    
+    def _get_model_path(self):
+        """
+        Determine the correct path for the model file based on the environment.
+        """
+        if self.is_running_in_docker():
+            return "app/models/kmean_model.pkl"
+        else:
+            return "app/app/models/kmean_model.pkl"
 
     def classify(self):
         df_montant = get_montant_score()
@@ -70,11 +89,13 @@ class KmeansClustering():
         return category
     
     def save_model(self):
-        with open('app/models/kmean_model.pkl', 'wb') as f:
+        model_path = self._get_model_path()
+        with open(model_path, 'wb') as f:
             pickle.dump((self.kmean_model, self.scaler, self.df), f)
 
     def load_model(self):
-        with open('app/models/kmean_model.pkl', 'rb') as f:
+        model_path = self._get_model_path()
+        with open(model_path, 'rb') as f:
             self.kmean_model, self.scaler, self.df = pickle.load(f)
 
 

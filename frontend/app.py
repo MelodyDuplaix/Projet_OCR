@@ -12,9 +12,12 @@ app.secret_key = os.getenv("SUPER_SECRET_KEY")
 app.static_folder = 'static'
 
 FASTAPI_URL = os.getenv("FASTAPI_URL")
+if __name__ == "__main__":
+    FASTAPI_URL = "http://localhost:8000"
+
 
 # Serve static files from the 'temp' directory
-temp_dir = os.path.join(app.root_path, '..', 'temp')
+temp_dir = os.path.join(app.root_path, 'temp')
 @app.route('/temp/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(temp_dir, filename)
@@ -51,7 +54,7 @@ def upload():
         file = request.files["file"]
         if file:
             # Ensure the temp directory exists
-            temp_dir = os.path.join(app.root_path, '.', 'temp')
+            temp_dir = os.path.join(app.root_path, 'temp')
             os.makedirs(temp_dir, exist_ok=True)
 
             # Save the file to the temp directory
