@@ -10,12 +10,12 @@ import json
 from datetime import timedelta
 from typing import Optional
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.database import create_tables, add_user, add_data, engine, add_log
-from src.extract_data import extraire_donnees
-from app.auth import auth
-from app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
-from app.auth.models import User
-from app.auth.models import Token
+from app.app.utils.database import create_tables, add_user, add_data, engine, add_log
+from app.app.utils.extract_data import extraire_donnees
+from app.app.auth import auth
+from app.app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
+from app.app.auth.models import User
+from app.app.auth.models import Token
 
 async def save_uploaded_file(file: UploadFile) -> str:
     """Saves the uploaded file to a temporary location."""

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Factures{% endblock %}
+
+{% block content %}
+<style>
+th a {
+    color: black !important;
+}
+</style>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Factures</h1>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>
+                        ID Facture
+                        <a href="?sort=id_facture&order=asc">&#9650;</a>
+                        <a href="?sort=id_facture&order=desc">&#9660;</a>
+                    </th>
+                    <th>
+                        Date Facturation
+                        <a href="?sort=date_facturation&order=asc">&#9650;</a>
+                        <a href="?sort=date_facturation&order=desc">&#9660;</a>
+                    </th>
+                    <th>
+                        Total (€)
+                        <a href="?sort=total&order=asc">&#9650;</a>
+                        <a href="?sort=total&order=desc">&#9660;</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for facture in factures %}
+                <tr>
+                    <td><a href="{{ url_for('facture', id_facture=facture.id_facture) }}">{{ facture.id_facture }}</a></td> 
+                    <td>{{ facture.date_facturation }}</td>
+                    <td>{{ facture.total | round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function sortTable(column, order) {
+        const tbody = document.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[column].textContent.trim();
+            const cellB = rowB.cells[column].textContent.trim();
+            
+            return (order === 'asc') ? cellA.localeCompare(cellB, 'fr', { numeric: true }) : cellB.localeCompare(cellA, 'fr', { numeric: true });
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    document.querySelectorAll('th a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const params = new URLSearchParams(this.href.split('?')[1]);
+            const column = this.closest('th').cellIndex;
+            sortTable(column, params.get('order'));
+        });
+    });
+</script>
+{% endblock %}

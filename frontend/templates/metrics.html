@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Metrics{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-5">Metrics</h1>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Requests</h5>
+                        <p class="card-text">{{ total_requests }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Error Rate</h5>
+                        <p class="card-text">{{ error_rate }} %</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <h2 class="text-center mb-4">Errors Distribution</h2>
+            <div class="col-md-6 offset-md-3 d-flex justify-content-center">
+                <canvas id="errorChart" style="max-width: 400px; max-height: 400px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var errorList = {{ error_list|tojson }};
+        // Count error occurrences
+        const errorCounts = {};
+        if (errorList && Array.isArray(errorList)) {
+            errorList.forEach(error => {
+            if (typeof error === 'string') {
+                const trimmedError = error.trim();
+                errorCounts[trimmedError] = (errorCounts[trimmedError] || 0) + 1;
+            }
+            });
+        }
+
+        const labels = Object.keys(errorCounts);
+        const values = Object.values(errorCounts);
+
+        const errorChartCanvas = document.getElementById('errorChart').getContext('2d');
+        const errorChart = new Chart(errorChartCanvas, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+        });
+    </script>
+{% endblock %}

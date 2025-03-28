@@ -11,14 +11,11 @@ pdf2image
 
 # ocr
 opencv-python
-easyocr
-python-doctr
-transformers
 dateparser
 
 # database
 sqlalchemy
-psycopg2
+psycopg2-binary
 
 # analyses
 matplotlib
@@ -33,6 +30,3 @@ passlib[bpcrypt]
 jose
 pyjwt
 bcrypt
-
-# frontend
-flask

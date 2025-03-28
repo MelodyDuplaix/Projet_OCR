@@ -6,13 +6,13 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from app.auth.models import TokenData, User, UserInDB
+from app.app.auth.models import TokenData, User, UserInDB
 from fastapi import Depends
-from src.database import SessionLocal, User as DBUser
+from app.app.utils.database import SessionLocal, User as DBUser
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.database import create_tables, add_user
+from app.app.utils.database import create_tables, add_user
 from dotenv import load_dotenv
 
 load_dotenv()

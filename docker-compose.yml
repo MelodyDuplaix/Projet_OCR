@@ -1,0 +1,25 @@
+
+services:
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file: 
+      - .env  # Charger les variables d'environnement depuis le fichier .env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file: 
+      - .env  # Charger les variables d'environnement depuis le fichier .env
+    environment:
+      - DOCKER_ENV=true
+    volumes:
+      - ./temp:/frontend/temp
+    depends_on:
+      - api

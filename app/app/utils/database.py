@@ -1,3 +1,4 @@
+from matplotlib import table
 from sqlalchemy import create_engine, Column, String, Date, Numeric, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -6,9 +7,17 @@ import os
 import pandas as pd
 from sqlalchemy import text
 
-database_url = os.getenv("DATABASE_URL")
+load_dotenv()
 
-engine = create_engine(database_url)
+try:
+    database_url = os.getenv("DATABASE_URL")
+    if database_url is None:
+        raise ValueError("DATABASE_URL environment variable is not set.")
+    engine = create_engine(database_url)
+except ValueError as e:
+    print(f"Error: {e}")
+    exit(1) # Exit with an error code
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
@@ -84,13 +93,12 @@ def add_user(username, full_name, email, hashed_password, disabled=False):
 
 def add_data(engine, table_name, df):
     """
-    Executes a SQL query and returns the result as a Pandas DataFrame.
-    
-    args:
-        sql_query (str): The SQL query to execute.
-    
-    returns:
-        pd.DataFrame: The result of the query as a Pandas DataFrame.
+    Add data to the specified table in the database.
+
+    Args:
+        engine (engine): the engine to connect to the database
+        table_name (str): the name of the table to add the data to
+        df (pd.DataFrame): the dataframe to add to the database
     """
     if not df.empty:
         if table_name == 'client':
@@ -102,17 +110,34 @@ def add_data(engine, table_name, df):
         elif table_name == 'facture':
             id_column = 'id_facture'
             Model = Facture
-        elif table_name == 'achat':
-            id_column = 'id_produit'
-            Model = Achat
         elif table_name == 'log':
             id_column = 'time'
             Model = Log
         else:
             id_column = None
             Model = None
-
-        if id_column and Model:
+            
+        if table_name == 'achat':
+            with SessionLocal() as session:
+                for _, row in df.iterrows():
+                    data = row.to_dict()
+                    # Check if the record already exists
+                    existing_record = session.query(Achat).filter_by(
+                        id_produit=data['id_produit'],
+                        id_client=data['id_client'],
+                        id_facture=data['id_facture']
+                    ).first()
+                    if not existing_record:
+                        try:
+                            session.add(Achat(**data))
+                            session.commit()
+                        except:
+                            session.rollback()
+                            pass
+                    else:
+                        session.rollback()
+                        pass
+        elif id_column and Model:
             existing_ids = set()
             with engine.connect() as connection:
                 result = connection.execute(text(f"SELECT {id_column} FROM melody.\"{table_name}\""))
@@ -196,31 +221,153 @@ def add_log(time, file, error):
         file (str): The file of the log.
         error (str): The error of the log.
     """
+    file = file.split("-")[0].split("_")[1:].join("-")
     log = Log(time=time, fichier=file, erreur=error)
     with SessionLocal() as session:
         session.add(log)
         session.commit()
 
+def get_all_factures():
+    with SessionLocal() as session:
+        return session.query(Facture).all()
+
+def get_facture_by_id(id_facture: str):
+    """
+    Get facture by id.
+
+    Args:
+        id_facture (str): The id of the facture.
+
+    Returns:
+        dict: The facture data.
+    """
+    with SessionLocal() as session:
+        facture = session.query(Facture).filter(Facture.id_facture == id_facture).first()
+        if facture:
+            purchases = session.query(Achat).filter(Achat.id_facture == id_facture).all()
+            products_data = []
+            client = None
+            for purchase in purchases:
+                client = session.query(Client).filter(Client.id_client == purchase.id_client).first()
+                product = session.query(Produit).filter(Produit.id_produit == purchase.id_produit).first()
+                products_data.append({
+                    "product": product,
+                    "quantity": purchase.quantité
+                })
+            facture_data = {
+                "facture": facture,
+                "client": client,
+                "products": products_data
+            }
+            return facture_data
+        return None
+
+def get_all_clients():
+    with SessionLocal() as session:
+        return session.query(Client).all()
+
+def get_client_by_id(id_client: str):
+    """
+    Get client by id.
+
+    Args:
+        id_client (str): The id of the client.
+
+    Returns:
+        dict: The client data.
+    """
+    with SessionLocal() as session:
+        client = session.query(Client).filter(Client.id_client == id_client).first()
+        if client:
+            purchases = session.query(Achat).filter(Achat.id_client == id_client).all()
+            factures_data = []
+            for purchase in purchases:
+                facture = session.query(Facture).filter(Facture.id_facture == purchase.id_facture).first()
+                products_data = []
+                products = session.query(Achat).filter(Achat.id_facture == purchase.id_facture).all()
+                for prod in products:
+                    product = session.query(Produit).filter(Produit.id_produit == prod.id_produit).first()
+                    products_data.append({
+                        "product": product,
+                        "quantity": prod.quantité
+                    })
+                factures_data.append({
+                    "facture": facture,
+                    "products": products_data
+                })
+            client_data = {
+                "client": client,
+                "factures": factures_data
+            }
+            return client_data
+        return None
+
+def get_all_achats():
+    with SessionLocal() as session:
+        return session.query(Achat).all()
+
+def get_achat_by_id(id_produit: str, id_client: str, id_facture: str):
+    with SessionLocal() as session:
+        return session.query(Achat).filter(Achat.id_produit == id_produit, Achat.id_client == id_client, Achat.id_facture == id_facture).first()
+
+def get_all_produits():
+    with SessionLocal() as session:
+        return session.query(Produit).all()
+
+def get_produit_by_id(id_produit: str):
+    """
+    Get produit by id.
+
+    Args:
+        id_produit (str): The id of the produit.
+
+    Returns:
+        dict: The produit data.
+    """
+    with SessionLocal() as session:
+        produit = session.query(Produit).filter(Produit.id_produit == id_produit).first()
+        if produit:
+            purchases = session.query(Achat).filter(Achat.id_produit == id_produit).all()
+            purchases_data = []
+            for purchase in purchases:
+                client = session.query(Client).filter(Client.id_client == purchase.id_client).first()
+                facture = session.query(Facture).filter(Facture.id_facture == purchase.id_facture).first()
+                purchases_data.append({
+                    "purchase": purchase,
+                    "client": client,
+                    "facture": facture
+                })
+            produit_data = {
+                "produit": produit,
+                "purchases": purchases_data
+            }
+            return produit_data
+        return None
 
 def execute_query(sql_query):
     """
     Executes a SQL query and returns the result as a Pandas DataFrame.
     
-    args:
+    Args:
         sql_query (str): The SQL query to execute.
     
-    returns:
+    Returns:
         pd.DataFrame: The result of the query as a Pandas DataFrame.
     """
     load_dotenv()
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable not set")
-    engine = create_engine(database_url)
-    with engine.connect() as connection:
-        result = connection.execute(text(sql_query))
-        df = pd.DataFrame(result.fetchall(), columns=list(result.keys()))
-    return df
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if database_url is None:
+            raise ValueError("DATABASE_URL environment variable is not set.")
+        engine = create_engine(database_url)
+        with engine.connect() as connection:
+            result = connection.execute(text(sql_query))
+            df = pd.DataFrame(result.fetchall(), columns=list(result.keys()))
+        return df
+    except Exception as e:
+        print(f"Database query failed: {e}")
+        return pd.DataFrame() # Return an empty DataFrame on error
+
 
 if __name__ == "__main__":
     create_tables()
