@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     env_file: 
-      - .env  # Charger les variables d'environnement depuis le fichier .env
+      - .env 
 
   frontend:
     build:
@@ -16,7 +16,7 @@ services:
     ports:
       - "5000:5000"
     env_file: 
-      - .env  # Charger les variables d'environnement depuis le fichier .env
+      - .env 
     environment:
       - DOCKER_ENV=true
     volumes:
