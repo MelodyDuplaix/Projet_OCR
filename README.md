@@ -47,6 +47,13 @@ pip install -r requirements.txt
    ```
 3. Accéder à l'application via le navigateur à l'adresse : `http://localhost:5000`.
 
+Avec docker:
+
+```bash
+docker-compose build
+docker-compose up
+```
+
 ## Fonctionnement de l'application
 
 ### Architecture
@@ -86,7 +93,6 @@ sequenceDiagram
     User->>Frontend: Téléchargement de la facture
     Frontend->>API: POST /process avec le fichier et le token JWT
     API->>Monitoring: Enregistrement de la requête
-    Monitoring-->>API: Requête enregistrée
     API->>Auth: Validation du token JWT
     Auth-->>API: Token valide
     API->>OCR: Prétraitement et extraction des données
@@ -98,7 +104,8 @@ sequenceDiagram
 
 ## Améliorations possibles
 
+- Amélioration de la gestion des erreurs et des exceptions.
 - Résolution des problèmes de compatibilité pour le pipeline CI/CD.
-- Gestion des seuils de qualité OCR et intégration d'une boucle de retour utilisateur (Human Feedback Loop).
+- Possibilité de création de compte via l'application et donc l'API.
 - Optimisation des performances pour réduire les temps de traitement.
 - Ajout de filtres et graphiques supplémentaires pour les visualisations.

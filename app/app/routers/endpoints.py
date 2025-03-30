@@ -1,3 +1,4 @@
+from email.policy import HTTP
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, status
 from fastapi.responses import JSONResponse
 from typing import Annotated, Dict, Any, List
@@ -49,7 +50,7 @@ async def login_for_access_token(
         )
         return Token(access_token=access_token, token_type="bearer")
     except Exception as e:
-        return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
+        return HTTPException(status_code=400, detail=str(e))
 
 @router.get(
     "/",
@@ -105,7 +106,7 @@ async def create_item(
     description="Endpoint to retrieve all factures from the database.",
     tags=["Database"],
 )
-async def read_all_factures():
+async def read_all_factures(current_user: bool = Depends(get_current_user)):
     """
     Retrieve all factures.
     """
@@ -126,7 +127,7 @@ async def read_all_factures():
         500: {"description": "Internal server error"}
     }
 )
-async def read_facture(id_facture: str):
+async def read_facture(id_facture: str, current_user: bool = Depends(get_current_user)):
     """
     Retrieve a facture by its ID.
     """
@@ -144,7 +145,7 @@ async def read_facture(id_facture: str):
     description="Endpoint to retrieve all clients from the database.",
     tags=["Database"],
 )
-async def read_all_clients():
+async def read_all_clients(current_user: bool = Depends(get_current_user)):
     """
     Retrieve all clients.
     """
@@ -165,7 +166,7 @@ async def read_all_clients():
         500: {"description": "Internal server error"}
     }
 )
-async def read_client(id_client: str):
+async def read_client(id_client: str, current_user: bool = Depends(get_current_user)):
     """
     Retrieve a client by their ID.
     """
@@ -184,7 +185,7 @@ async def read_client(id_client: str):
     response_model=List[Dict[str, Any]],
     tags=["Database"],
 )
-async def read_all_achats():
+async def read_all_achats(current_user: bool = Depends(get_current_user)):
     """
     Retrieve all achats.
     """
@@ -205,7 +206,7 @@ async def read_all_achats():
         500: {"description": "Internal server error"}
     }
 )
-async def read_achat(id_produit: str, id_client: str, id_facture: str):
+async def read_achat(id_produit: str, id_client: str, id_facture: str, current_user: bool = Depends(get_current_user)):
     """
     Retrieve an achat by its composite ID.
     """
@@ -224,7 +225,7 @@ async def read_achat(id_produit: str, id_client: str, id_facture: str):
     response_model=List[Dict[str, Any]],
     tags=["Database"],
 )
-async def read_all_produits():
+async def read_all_produits(current_user: bool = Depends(get_current_user)):
     try:
         produits = get_all_produits()
         return produits
@@ -242,7 +243,7 @@ async def read_all_produits():
         500: {"description": "Internal server error"}
     }
 )
-async def read_produit(id_produit: str):
+async def read_produit(id_produit: str, current_user: bool = Depends(get_current_user)):
     try:
         produit_data = get_produit_by_id(id_produit)
         if produit_data is None:
@@ -258,7 +259,7 @@ async def read_produit(id_produit: str):
     response_model=Dict[str, Any],
     tags=["Clustering"],
 )
-async def get_rfm_clustering():
+async def get_rfm_clustering(current_user: bool = Depends(get_current_user)):
     try:
         df = rfm_model.df
         clients = {}
@@ -283,7 +284,7 @@ async def get_rfm_clustering():
     response_model=Dict[str, Any],
     tags=["Clustering"],
 )
-async def get_kmeans_clustering():
+async def get_kmeans_clustering(current_user: bool = Depends(get_current_user)):
     try:
         df = kmeans_model.df
         clients = {}

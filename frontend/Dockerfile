@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 5000
 
 # Commande pour démarrer l'application
-CMD ["python", "run_prod.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "app:app"]
