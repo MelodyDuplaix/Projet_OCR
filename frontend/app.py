@@ -60,8 +60,11 @@ def upload():
             os.makedirs(temp_dir, exist_ok=True)
 
             # Save the file to the temp directory
-            file_path = os.path.join(temp_dir, file.filename)
-            file.save(file_path)
+            if file and file.filename:
+                file_path = os.path.join(temp_dir, file.filename)
+                file.save(file_path)
+            else:
+                return render_template("upload.html", error="No file selected")
 
             headers = {"Authorization": f"Bearer {token}"}
             try:
