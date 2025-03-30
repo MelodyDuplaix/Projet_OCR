@@ -86,7 +86,6 @@ sequenceDiagram
     User->>Frontend: Téléchargement de la facture
     Frontend->>API: POST /process avec le fichier et le token JWT
     API->>Monitoring: Enregistrement de la requête
-    Monitoring-->>API: Requête enregistrée
     API->>Auth: Validation du token JWT
     Auth-->>API: Token valide
     API->>OCR: Prétraitement et extraction des données

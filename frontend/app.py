@@ -223,7 +223,6 @@ def metrics():
     total_requests = data["total_requests"]
     error_rate = data["error_rate"]
     error_percentage = round(error_rate * 100, 2)
-    print(data)
     error_list = data["error_list"]
     return render_template("metrics.html", total_requests=total_requests, error_rate=error_percentage, error_list=error_list)
     
