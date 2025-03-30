@@ -27,10 +27,12 @@ def login():
     if request.method == "POST":
         form_data = {"username": request.form["username"], "password": request.form["password"]}
         response = requests.post(f"{FASTAPI_URL}/token", data=form_data)
-        if response.status_code == 200:
+        if response.status_code == 200 and response.json().get("access_token"):
             token = response.json()["access_token"]
             session["token"] = token
             return redirect(url_for("index"))
+        elif response.status_code == 400:
+            return render_template("login.html", error=response.json()["detail"])
         else:
             return render_template("login.html", error="Invalid credentials")
     return render_template("login.html")

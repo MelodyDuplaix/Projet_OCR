@@ -1,3 +1,4 @@
+from email.policy import HTTP
 from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, status
 from fastapi.responses import JSONResponse
 from typing import Annotated, Dict, Any, List
@@ -49,7 +50,7 @@ async def login_for_access_token(
         )
         return Token(access_token=access_token, token_type="bearer")
     except Exception as e:
-        return JSONResponse(content={"status": "error", "erreur": str(e), "data": None})
+        return HTTPException(status_code=400, detail=str(e))
 
 @router.get(
     "/",
