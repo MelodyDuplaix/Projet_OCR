@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.app.auth.auth import authenticate_user, create_access_token, get_current_active_user, get_current_user
 from app.app.auth.models import Token, User
 from app.app.utils.helpers import save_uploaded_file, extract_data_from_file, add_data_to_database, convert_dataframes_to_json
-from app.app.utils.database import Facture, Log, SessionLocal, get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id
+from app.app.utils.database import Facture, Log, SessionLocal, get_all_factures, get_facture_by_id, get_all_clients, get_client_by_id, get_all_achats, get_achat_by_id, get_all_produits, get_produit_by_id, get_factures_summary_data
 from app.app.utils.clustering import RFMClustering, KmeansClustering
 from app.app.utils.monitoring import monitor
 import pandas as pd
@@ -249,6 +249,16 @@ async def read_produit(id_produit: str, current_user: bool = Depends(get_current
         if produit_data is None:
             raise HTTPException(status_code=404, detail="Produit not found")
         return produit_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/summary/factures",
+            summary="Get factures summary",
+            description="Endpoint to retrieve factures summary data.",
+            tags=["Database"])
+async def get_factures_summary(current_user: bool = Depends(get_current_user)):   
+    try:
+        return get_factures_summary_data()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

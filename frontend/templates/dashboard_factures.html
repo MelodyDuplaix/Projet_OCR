@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Dashboard{% endblock %}
+
+{% block content %}
+<h1>Sales Dashboard</h1>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total sales:</h5>
+                    <p class="card-text">{{ metrics.ca_total }} €</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Nomber of invoices:</h5>
+                    <p class="card-text">{{ metrics.nb_factures }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Nomber of customers:</h5>
+                    <p class="card-text">{{ metrics.nb_clients }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Nomber of products:</h5>
+                    <p class="card-text">{{ metrics.nb_produits }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Nomber of sold products:</h5>
+                    <p class="card-text">{{ metrics.nb_produits_vendus }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="salesChart" width="400" height="200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const salesData = {{ metrics.vente_par_mois|tojson|safe }};
+  const labels = Object.keys(salesData);
+  const data = Object.values(salesData);
+
+  const chartData = {
+    labels: labels.map(label => {
+      const [year, month] = label.split('-');
+      const quarter = Math.ceil(month / 3);
+      return `${year} - Q${quarter}`;
+    }),
+    datasets: [{
+      label: 'Ventes par mois',
+      data: data,
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  const myChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

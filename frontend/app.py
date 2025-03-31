@@ -247,6 +247,23 @@ def dashboard():
         return render_template("dashboard.html", metrics=metrics)
     except requests.exceptions.RequestException as e:
         return render_template("dashboard.html", error=str(e))
+    
+@app.route("/dashboard/factures")
+def dashboard_factures():
+    token = session.get("token")
+    if not token:
+        return redirect(url_for("login"))
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(f"{FASTAPI_URL}/summary/factures", headers=headers)
+        if response.status_code == 401:
+            return redirect(url_for("logout"))
+        response.raise_for_status()
+        metrics = response.json()
+        print(metrics["vente_par_mois"])
+        return render_template("dashboard_factures.html", metrics=metrics)
+    except requests.exceptions.RequestException as e:
+        return render_template("dashboard_factures.html", error=str(e))
 
 
 if __name__ == "__main__":
