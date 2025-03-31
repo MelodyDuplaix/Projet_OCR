@@ -70,6 +70,7 @@ L'application est divisée en deux services principaux :
 2. **Analyse des données** :
    - Les données des factures sont analysées pour générer des clusters de clients via RFM et KMeans.
    - Les résultats sont visualisés sous forme de graphiques et tableaux.
+   - Les données de ventes sont également visibles sur un dashboard.
 
 3. **Monitoring** :
    - Les performances de l'OCR (taux d'erreur, temps de traitement) et de l'API (temps de réponse, erreurs) sont suivies via un middleware de monitoring.
