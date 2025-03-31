@@ -344,6 +344,36 @@ def get_produit_by_id(id_produit: str):
             return produit_data
         return None
 
+
+def get_factures_summary_data():
+    """
+    Get factures summary data.
+
+    Returns:
+    dict: The factures summary data (chiffre d'affaire total, nombre de factures, nombre de clients, nombre de produits vendus, vente par mois).
+    """
+    with SessionLocal() as session:
+        factures = session.query(Facture).all()
+        clients = session.query(Client).all()
+        produits = session.query(Produit).all()
+        achats = session.query(Achat).all()
+
+        # Calculate sales per month
+        vente_par_mois = {}
+        for facture in factures:
+            month = facture.date_facturation.strftime("%Y-%m")
+            if month not in vente_par_mois:
+                vente_par_mois[month] = 0
+            vente_par_mois[month] += float(facture.total)
+        return {
+            "ca_total": sum(facture.total for facture in factures),
+            "nb_factures": len(factures),
+            "nb_clients": len(clients),
+            "nb_produits": len(produits),
+            "nb_produits_vendus": len(achats),
+            "vente_par_mois": vente_par_mois
+        }
+        
 def execute_query(sql_query):
     """
     Executes a SQL query and returns the result as a Pandas DataFrame.
@@ -367,6 +397,7 @@ def execute_query(sql_query):
     except Exception as e:
         print(f"Database query failed: {e}")
         return pd.DataFrame() # Return an empty DataFrame on error
+
 
 
 if __name__ == "__main__":
